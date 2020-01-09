@@ -17,6 +17,9 @@ set_target_properties(cudalib PROPERTIES
 
 target_sources(sample
         PRIVATE
+        bridges.h
+        bridges.cpp
+        timer.hpp
         main.cpp
         )
 
