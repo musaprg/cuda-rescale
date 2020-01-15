@@ -1,12 +1,14 @@
 cmake_minimum_required(VERSION 3.10)
 
-if(NOT DEFINED CMAKE_CUDA_COMPILER)
+if (NOT DEFINED CMAKE_CUDA_COMPILER)
     set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
-endif()
+endif ()
 
 project(sample LANGUAGES CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 17)
+
+#set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${sample_SOURCE_DIR}/bin)
 

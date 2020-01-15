@@ -9,6 +9,7 @@ target_sources(sample
 
 add_library(cudalib
         cuda.hpp
+        cuda_context_data.h
         functions.h
         functions.cu)
 
@@ -17,6 +18,7 @@ set_target_properties(cudalib PROPERTIES
 
 target_sources(sample
         PRIVATE
+        cuda_context_data.h
         bridges.h
         bridges.cpp
         timer.hpp

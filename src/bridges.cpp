@@ -11,7 +11,7 @@
  */
 
 CudaContextData
-get_cuda_context_data(const shared_ptr<seal::SEALContext> context,
+get_cuda_context_data(const shared_ptr<seal::SEALContext> &context,
                       const seal::Ciphertext &encrypted,
                       const seal::Ciphertext &destination) {
   // TODO: parms_id may be gotten from context? e.g. context.first_parm_id()
@@ -36,6 +36,9 @@ get_cuda_context_data(const shared_ptr<seal::SEALContext> context,
       context_data.base_converter()->get_inv_last_coeff_mod_array();
 
   auto last_modulus = context_data.parms().coeff_modulus().back();
+
+  //  auto current_ntt_table = context_data.small_ntt_tables()->modulus();
+  //  auto next_ntt_table = next_context_data.small_ntt_tables()->modulus();
 
   CudaContextData cuda_context_data(coeff_modulus, next_coeff_modulus);
 

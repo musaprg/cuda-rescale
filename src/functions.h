@@ -16,10 +16,12 @@ using uint64_t_array_ptr = uint64_t_array *;
 
 // void initialize(std::shared_ptr<seal::SEALContext> context);
 
-void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination);
+void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
+                     const CudaContextData &context);
 
-inline void rescale_to_next_inplace(CuCiphertext &encrypted) {
-  rescale_to_next(encrypted, encrypted);
+inline void rescale_to_next_inplace(CuCiphertext &encrypted,
+                                    const CudaContextData &context) {
+  rescale_to_next(encrypted, encrypted, context);
 }
 
 __device__ void transform_from_ntt_inplace(uint64_t_array encrypted_ntt);
@@ -36,8 +38,11 @@ __device__ void sub_uint_uint_mod();
 
 __device__ void sub_poly_poly_coeffmod();
 
-__global__ void mod_swtich_scale_to_next(uint64_t_array encrypted,
-                                         uint64_t_array destination);
+__device__ void multiply_poly_scalar_coeffmod();
+
+__global__ void mod_switch_scale_to_next(uint64_t_array encrypted,
+                                         uint64_t_array destination,
+                                         CudaContextData *context);
 
 // For compiling test
 __global__ void kernel(void);

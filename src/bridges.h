@@ -11,10 +11,12 @@
 
 using namespace std;
 
-CudaContextData get_cuda_context_data(shared_ptr<seal::SEALContext> context);
+CudaContextData get_cuda_context_data(const shared_ptr<seal::SEALContext> &,
+                                      const seal::Ciphertext &,
+                                      const seal::Ciphertext &);
 
-vector<uint64_t>
-convert_small_modulus_vec_to_uint_vec(vector<seal::SmallModulus> src) {
+inline vector<uint64_t>
+convert_small_modulus_vec_to_uint_vec(const vector<seal::SmallModulus> &src) {
   vector<uint64_t> ret;
   ret.reserve(src.size());
 

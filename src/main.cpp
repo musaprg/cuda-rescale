@@ -12,9 +12,11 @@
 #   include <cxxabi.h>
 #endif
 
+#include "bridges.h"
 #include "examples.hpp"
 #include "functions.h"
 #include "seal/cudaevaluator.h"
+#include "seal/seal.h"
 #include "timer.hpp"
 
 using namespace std;
@@ -598,6 +600,19 @@ void example_ckks_performance_default() {
   ckks_performance_test(SEALContext::Create(parms));
 }
 
+CuCiphertext get_cuciphertext_from_ciphertext(const Ciphertext &ciphertext) {
+  CuCiphertext ret;
+  auto source_size = ciphertext.uint64_count();
+  ret.reserve(source_size);
+
+  auto it = ciphertext.data();
+  for (size_t i = 0; i < source_size; ++i) {
+    ret.emplace_back(*it++);
+  }
+
+  return ret;
+}
+
 void sample() {
   EncryptionParameters parms(scheme_type::CKKS);
 
@@ -674,14 +689,19 @@ void sample() {
       coeff_modulus.push_back(v.value());
     }
     //    print_vector(coeff_modulus);
+
+    auto x1_encrypted_cu = get_cuciphertext_from_ciphertext(x1_encrypted);
+    CudaContextData cucontext =
+        get_cuda_context_data(context, x1_encrypted, x1_encrypted);
+    rescale_to_next_inplace(x1_encrypted_cu, cucontext);
 }
 
 int main() {
   //    example_ckks_basics();
 
-  // sample();
+  sample();
 
-  example_ckks_performance_default();
+  //  example_ckks_performance_default();
 
   return 0;
 }
