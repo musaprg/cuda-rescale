@@ -3,6 +3,7 @@
     "editor.formatOnSave": true,
     "editor.formatOnType": true,
     "files.associations": {
+        "*.cu": "cpp",
         "cctype": "cpp",
         "clocale": "cpp",
         "cmath": "cpp",
