@@ -3,13 +3,13 @@
 //
 // Modified by Kotaro Inoue <kinoue@yama.info.waseda.ac.jp>
 
+#include <cstdlib>
 #include <memory>
 #include <string>
-#include <cstdlib>
 #include <type_traits>
 #include <typeinfo>
 #ifndef _MSC_VER
-#   include <cxxabi.h>
+#include <cxxabi.h>
 #endif
 
 #include "bridges.h"
@@ -51,17 +51,18 @@ type_name()
 
 // https://github.com/microsoft/SEAL/blob/master/native/examples/4_ckks_basics.cpp
 // Fixed by @musaprg
-void example_ckks_basics() {
-  print_example_banner("Example: CKKS Basics");
+void example_ckks_basics()
+{
+    print_example_banner("Example: CKKS Basics");
 
-  EncryptionParameters parms(scheme_type::CKKS);
+    EncryptionParameters parms(scheme_type::CKKS);
 
-  size_t poly_modulus_degree = 8192;
-  parms.set_poly_modulus_degree(poly_modulus_degree);
-  parms.set_coeff_modulus(
+    size_t poly_modulus_degree = 8192;
+    parms.set_poly_modulus_degree(poly_modulus_degree);
+    parms.set_coeff_modulus(
       CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60}));
 
-  double scale = pow(2.0, 40);
+    double scale = pow(2.0, 40);
 
     auto context = SEALContext::Create(parms);
     print_parameters(context);
@@ -93,8 +94,9 @@ void example_ckks_basics() {
     cout << "Evaluating polynomial PI*x^3 + 0.4x + 1 ..." << endl;
 
     /*
-    We create plaintexts for PI, 0.4, and 1 using an overload of CKKSEncoder::encode
-    that encodes the given floating-point value to every slot in the vector.
+    We create plaintexts for PI, 0.4, and 1 using an overload of
+    CKKSEncoder::encode that encodes the given floating-point value to every
+    slot in the vector.
     */
     Plaintext plain_coeff3, plain_coeff1, plain_coeff0;
     encoder.encode(3.14159265, scale, plain_coeff3);
@@ -118,37 +120,38 @@ void example_ckks_basics() {
     evaluator.square(x1_encrypted, x3_encrypted);
     evaluator.relinearize_inplace(x3_encrypted, relin_keys);
     cout << "    + Scale of x^2 before rescale: " << log2(x3_encrypted.scale())
-        << " bits" << endl;
+         << " bits" << endl;
 
     /*
     Now rescale; in addition to a modulus switch, the scale is reduced down by
-    a factor equal to the prime that was switched away (40-bit prime). Hence, the
-    new scale should be close to 2^40. Note, however, that the scale is not equal
-    to 2^40: this is because the 40-bit prime is only close to 2^40.
+    a factor equal to the prime that was switched away (40-bit prime). Hence,
+    the new scale should be close to 2^40. Note, however, that the scale is not
+    equal to 2^40: this is because the 40-bit prime is only close to 2^40.
     */
     print_line(__LINE__);
     cout << "Rescale x^2." << endl;
     evaluator.rescale_to_next_inplace(x3_encrypted);
     cout << "    + Scale of x^2 after rescale: " << log2(x3_encrypted.scale())
-        << " bits" << endl;
+         << " bits" << endl;
 
     /*
-    Now x3_encrypted is at a different level than x1_encrypted, which prevents us
-    from multiplying them to compute x^3. We could simply switch x1_encrypted to
-    the next parameters in the modulus switching chain. However, since we still
-    need to multiply the x^3 term with PI (plain_coeff3), we instead compute PI*x
-    first and multiply that with x^2 to obtain PI*x^3. To this end, we compute
-    PI*x and rescale it back from scale 2^80 to something close to 2^40.
+    Now x3_encrypted is at a different level than x1_encrypted, which prevents
+    us from multiplying them to compute x^3. We could simply switch x1_encrypted
+    to the next parameters in the modulus switching chain. However, since we
+    still need to multiply the x^3 term with PI (plain_coeff3), we instead
+    compute PI*x first and multiply that with x^2 to obtain PI*x^3. To this end,
+    we compute PI*x and rescale it back from scale 2^80 to something close to
+    2^40.
     */
     print_line(__LINE__);
     cout << "Compute and rescale PI*x." << endl;
     Ciphertext x1_encrypted_coeff3;
     evaluator.multiply_plain(x1_encrypted, plain_coeff3, x1_encrypted_coeff3);
-    cout << "    + Scale of PI*x before rescale: " << log2(x1_encrypted_coeff3.scale())
-        << " bits" << endl;
+    cout << "    + Scale of PI*x before rescale: "
+         << log2(x1_encrypted_coeff3.scale()) << " bits" << endl;
     evaluator.rescale_to_next_inplace(x1_encrypted_coeff3);
-    cout << "    + Scale of PI*x after rescale: " << log2(x1_encrypted_coeff3.scale())
-        << " bits" << endl;
+    cout << "    + Scale of PI*x after rescale: "
+         << log2(x1_encrypted_coeff3.scale()) << " bits" << endl;
 
     /*
     Since x3_encrypted and x1_encrypted_coeff3 have the same exact scale and use
@@ -161,11 +164,11 @@ void example_ckks_basics() {
     cout << "Compute, relinearize, and rescale (PI*x)*x^2." << endl;
     evaluator.multiply_inplace(x3_encrypted, x1_encrypted_coeff3);
     evaluator.relinearize_inplace(x3_encrypted, relin_keys);
-    cout << "    + Scale of PI*x^3 before rescale: " << log2(x3_encrypted.scale())
-        << " bits" << endl;
+    cout << "    + Scale of PI*x^3 before rescale: "
+         << log2(x3_encrypted.scale()) << " bits" << endl;
     evaluator.rescale_to_next_inplace(x3_encrypted);
-    cout << "    + Scale of PI*x^3 after rescale: " << log2(x3_encrypted.scale())
-        << " bits" << endl;
+    cout << "    + Scale of PI*x^3 after rescale: "
+         << log2(x3_encrypted.scale()) << " bits" << endl;
 
     /*
     Next we compute the degree one term. All this requires is one multiply_plain
@@ -174,11 +177,11 @@ void example_ckks_basics() {
     print_line(__LINE__);
     cout << "Compute and rescale 0.4*x." << endl;
     evaluator.multiply_plain_inplace(x1_encrypted, plain_coeff1);
-    cout << "    + Scale of 0.4*x before rescale: " << log2(x1_encrypted.scale())
-        << " bits" << endl;
+    cout << "    + Scale of 0.4*x before rescale: "
+         << log2(x1_encrypted.scale()) << " bits" << endl;
     evaluator.rescale_to_next_inplace(x1_encrypted);
     cout << "    + Scale of 0.4*x after rescale: " << log2(x1_encrypted.scale())
-        << " bits" << endl;
+         << " bits" << endl;
 
     /*
     Now we would hope to compute the sum of all three terms. However, there is
@@ -193,18 +196,21 @@ void example_ckks_basics() {
     print_line(__LINE__);
     cout << "Parameters used by all three terms are different." << endl;
     cout << "    + Modulus chain index for x3_encrypted: "
-        << context->get_context_data(x3_encrypted.parms_id())->chain_index() << endl;
+         << context->get_context_data(x3_encrypted.parms_id())->chain_index()
+         << endl;
     cout << "    + Modulus chain index for x1_encrypted: "
-        << context->get_context_data(x1_encrypted.parms_id())->chain_index() << endl;
+         << context->get_context_data(x1_encrypted.parms_id())->chain_index()
+         << endl;
     cout << "    + Modulus chain index for plain_coeff0: "
-        << context->get_context_data(plain_coeff0.parms_id())->chain_index() << endl;
+         << context->get_context_data(plain_coeff0.parms_id())->chain_index()
+         << endl;
     cout << endl;
 
     /*
     Let us carefully consider what the scales are at this point. We denote the
     primes in coeff_modulus as P_0, P_1, P_2, P_3, in this order. P_3 is used as
-    the special modulus and is not involved in rescalings. After the computations
-    above the scales in ciphertexts are:
+    the special modulus and is not involved in rescalings. After the
+    computations above the scales in ciphertexts are:
 
         - Product x^2 has scale 2^80 and is at level 2;
         - Product PI*x has scale 2^80 and is at level 2;
@@ -280,7 +286,7 @@ void example_ckks_basics() {
     for (size_t i = 0; i < input.size(); i++)
     {
         double x = input[i];
-        true_result.push_back((3.14159265 * x * x + 0.4)* x + 1);
+        true_result.push_back((3.14159265 * x * x + 0.4) * x + 1);
     }
     print_vector(true_result, 3, 7);
 
@@ -302,328 +308,293 @@ void example_ckks_basics() {
 
 // https://github.com/microsoft/SEAL/blob/master/native/examples/6_performance.cpp
 // Fixed by @musaprg
-void ckks_performance_test(shared_ptr<SEALContext> context) {
-  chrono::high_resolution_clock::time_point time_start, time_end;
+void ckks_performance_test(shared_ptr<SEALContext> context)
+{
+    chrono::high_resolution_clock::time_point time_start, time_end;
 
-  print_parameters(context);
-  cout << endl;
+    print_parameters(context);
+    cout << endl;
 
-  auto &parms = context->first_context_data()->parms();
-  size_t poly_modulus_degree = parms.poly_modulus_degree();
+    auto &parms = context->first_context_data()->parms();
+    size_t poly_modulus_degree = parms.poly_modulus_degree();
 
-  cout << "Generating secret/public keys: ";
-  KeyGenerator keygen(context);
-  cout << "Done" << endl;
+    cout << "Generating secret/public keys: ";
+    KeyGenerator keygen(context);
+    cout << "Done" << endl;
 
-  auto secret_key = keygen.secret_key();
-  auto public_key = keygen.public_key();
+    auto secret_key = keygen.secret_key();
+    auto public_key = keygen.public_key();
 
-  RelinKeys relin_keys;
-  GaloisKeys gal_keys;
-  chrono::microseconds time_diff;
-  if (context->using_keyswitching()) {
-    cout << "Generating relinearization keys: ";
-    time_start = chrono::high_resolution_clock::now();
-    relin_keys = keygen.relin_keys();
-    time_end = chrono::high_resolution_clock::now();
-    time_diff =
-        chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-    cout << "Done [" << time_diff.count() << " microseconds]" << endl;
+    RelinKeys relin_keys;
+    GaloisKeys gal_keys;
+    chrono::microseconds time_diff;
+    if (context->using_keyswitching())
+    {
+        cout << "Generating relinearization keys: ";
+        time_start = chrono::high_resolution_clock::now();
+        relin_keys = keygen.relin_keys();
+        time_end = chrono::high_resolution_clock::now();
+        time_diff =
+          chrono::duration_cast<chrono::microseconds>(time_end - time_start);
+        cout << "Done [" << time_diff.count() << " microseconds]" << endl;
 
-    if (!context->first_context_data()->qualifiers().using_batching) {
-      cout << "Given encryption parameters do not support batching." << endl;
-      return;
+        if (!context->first_context_data()->qualifiers().using_batching)
+        {
+            cout << "Given encryption parameters do not support batching."
+                 << endl;
+            return;
+        }
+
+        cout << "Generating Galois keys: ";
+        time_start = chrono::high_resolution_clock::now();
+        gal_keys = keygen.galois_keys();
+        time_end = chrono::high_resolution_clock::now();
+        time_diff =
+          chrono::duration_cast<chrono::microseconds>(time_end - time_start);
+        cout << "Done [" << time_diff.count() << " microseconds]" << endl;
     }
 
-    cout << "Generating Galois keys: ";
-    time_start = chrono::high_resolution_clock::now();
-    gal_keys = keygen.galois_keys();
-    time_end = chrono::high_resolution_clock::now();
-    time_diff =
-        chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-    cout << "Done [" << time_diff.count() << " microseconds]" << endl;
-  }
+    Encryptor encryptor(context, public_key);
+    Decryptor decryptor(context, secret_key);
+    Evaluator evaluator(context);
+    CKKSEncoder ckks_encoder(context);
 
-  Encryptor encryptor(context, public_key);
-  Decryptor decryptor(context, secret_key);
-  Evaluator evaluator(context);
-  CKKSEncoder ckks_encoder(context);
+    chrono::microseconds time_encode_sum(0);
+    chrono::microseconds time_decode_sum(0);
+    chrono::microseconds time_encrypt_sum(0);
+    chrono::microseconds time_decrypt_sum(0);
+    chrono::microseconds time_add_sum(0);
+    chrono::microseconds time_multiply_sum(0);
+    chrono::microseconds time_multiply_plain_sum(0);
+    chrono::microseconds time_square_sum(0);
+    chrono::microseconds time_relinearize_sum(0);
+    chrono::microseconds time_rescale_sum(0);
+    chrono::microseconds time_rotate_one_step_sum(0);
+    chrono::microseconds time_rotate_random_sum(0);
+    chrono::microseconds time_conjugate_sum(0);
 
-  chrono::microseconds time_encode_sum(0);
-  chrono::microseconds time_decode_sum(0);
-  chrono::microseconds time_encrypt_sum(0);
-  chrono::microseconds time_decrypt_sum(0);
-  chrono::microseconds time_add_sum(0);
-  chrono::microseconds time_multiply_sum(0);
-  chrono::microseconds time_multiply_plain_sum(0);
-  chrono::microseconds time_square_sum(0);
-  chrono::microseconds time_relinearize_sum(0);
-  chrono::microseconds time_rescale_sum(0);
-  chrono::microseconds time_rotate_one_step_sum(0);
-  chrono::microseconds time_rotate_random_sum(0);
-  chrono::microseconds time_conjugate_sum(0);
-
-  /*
-  How many times to run the test?
-  */
-  long long count = 10;
-
-  /*
-  Populate a vector of floating-point values to batch.
-  */
-  vector<double> pod_vector;
-  random_device rd;
-  for (size_t i = 0; i < ckks_encoder.slot_count(); i++) {
-    pod_vector.push_back(1.001 * static_cast<double>(i));
-  }
-
-  cout << "Running tests ";
-  for (long long i = 0; i < count; i++) {
     /*
-    [Encoding]
-    For scale we use the square root of the last coeff_modulus prime
-    from parms.
+    How many times to run the test?
     */
-    Plaintext plain(parms.poly_modulus_degree() * parms.coeff_modulus().size(),
-                    0);
-    /*
-     */
-    double scale =
-        sqrt(static_cast<double>(parms.coeff_modulus().back().value()));
-    time_start = chrono::high_resolution_clock::now();
-    ckks_encoder.encode(pod_vector, scale, plain);
-    time_end = chrono::high_resolution_clock::now();
-    time_encode_sum +=
-        chrono::duration_cast<chrono::microseconds>(time_end - time_start);
+    long long count = 10;
 
     /*
-    [Decoding]
+    Populate a vector of floating-point values to batch.
     */
-    vector<double> pod_vector2(ckks_encoder.slot_count());
-    time_start = chrono::high_resolution_clock::now();
-    ckks_encoder.decode(plain, pod_vector2);
-    time_end = chrono::high_resolution_clock::now();
-    time_decode_sum +=
-        chrono::duration_cast<chrono::microseconds>(time_end - time_start);
+    vector<double> pod_vector;
+    random_device rd;
+    for (size_t i = 0; i < ckks_encoder.slot_count(); i++)
+    {
+        pod_vector.push_back(1.001 * static_cast<double>(i));
+    }
 
-    /*
-    [Encryption]
-    */
-    Ciphertext encrypted(context);
-    time_start = chrono::high_resolution_clock::now();
-    encryptor.encrypt(plain, encrypted);
-    time_end = chrono::high_resolution_clock::now();
-    time_encrypt_sum +=
-        chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-
-    /*
-    [Decryption]
-    */
-    Plaintext plain2(poly_modulus_degree, 0);
-    time_start = chrono::high_resolution_clock::now();
-    decryptor.decrypt(encrypted, plain2);
-    time_end = chrono::high_resolution_clock::now();
-    time_decrypt_sum +=
-        chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-
-    /*
-    [Add]
-    */
-    Ciphertext encrypted1(context);
-    ckks_encoder.encode(i + 1, plain);
-    encryptor.encrypt(plain, encrypted1);
-    Ciphertext encrypted2(context);
-    ckks_encoder.encode(i + 1, plain2);
-    encryptor.encrypt(plain2, encrypted2);
-    time_start = chrono::high_resolution_clock::now();
-    evaluator.add_inplace(encrypted1, encrypted1);
-    evaluator.add_inplace(encrypted2, encrypted2);
-    evaluator.add_inplace(encrypted1, encrypted2);
-    time_end = chrono::high_resolution_clock::now();
-    time_add_sum +=
-        chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-
-    /*
-    [Multiply]
-    */
-    encrypted1.reserve(3);
-    time_start = chrono::high_resolution_clock::now();
-    evaluator.multiply_inplace(encrypted1, encrypted2);
-    time_end = chrono::high_resolution_clock::now();
-    time_multiply_sum +=
-        chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-
-    /*
-    [Multiply Plain]
-    */
-    time_start = chrono::high_resolution_clock::now();
-    evaluator.multiply_plain_inplace(encrypted2, plain);
-    time_end = chrono::high_resolution_clock::now();
-    time_multiply_plain_sum +=
-        chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-
-    /*
-    [Square]
-    */
-    time_start = chrono::high_resolution_clock::now();
-    evaluator.square_inplace(encrypted2);
-    time_end = chrono::high_resolution_clock::now();
-    time_square_sum +=
-        chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-
-    if (context->using_keyswitching()) {
-      // /*
-      // [Relinearize]
-      // */
-      // time_start = chrono::high_resolution_clock::now();
-      // evaluator.relinearize_inplace(encrypted1, relin_keys);
-      // time_end = chrono::high_resolution_clock::now();
-      // time_relinearize_sum += chrono::duration_cast<
-      //     chrono::microseconds>(time_end - time_start);
-
-      /*
-      [Rescale]
-      */
-      time_start = chrono::high_resolution_clock::now();
-      evaluator.rescale_to_next_inplace(encrypted1);
-      time_end = chrono::high_resolution_clock::now();
-      time_rescale_sum +=
+    cout << "Running tests ";
+    for (long long i = 0; i < count; i++)
+    {
+        /*
+        [Encoding]
+        For scale we use the square root of the last coeff_modulus prime
+        from parms.
+        */
+        Plaintext plain(
+          parms.poly_modulus_degree() * parms.coeff_modulus().size(), 0);
+        /*
+         */
+        double scale =
+          sqrt(static_cast<double>(parms.coeff_modulus().back().value()));
+        time_start = chrono::high_resolution_clock::now();
+        ckks_encoder.encode(pod_vector, scale, plain);
+        time_end = chrono::high_resolution_clock::now();
+        time_encode_sum +=
           chrono::duration_cast<chrono::microseconds>(time_end - time_start);
 
-      // /*
-      // [Rotate Vector]
-      // */
-      // time_start = chrono::high_resolution_clock::now();
-      // evaluator.rotate_vector_inplace(encrypted, 1, gal_keys);
-      // evaluator.rotate_vector_inplace(encrypted, -1, gal_keys);
-      // time_end = chrono::high_resolution_clock::now();
-      // time_rotate_one_step_sum += chrono::duration_cast<
-      //     chrono::microseconds>(time_end - time_start);
+        /*
+        [Decoding]
+        */
+        vector<double> pod_vector2(ckks_encoder.slot_count());
+        time_start = chrono::high_resolution_clock::now();
+        ckks_encoder.decode(plain, pod_vector2);
+        time_end = chrono::high_resolution_clock::now();
+        time_decode_sum +=
+          chrono::duration_cast<chrono::microseconds>(time_end - time_start);
 
-      // /*
-      // [Rotate Vector Random]
-      // */
-      // int random_rotation = static_cast<int>(rd() %
-      // ckks_encoder.slot_count()); time_start =
-      // chrono::high_resolution_clock::now();
-      // evaluator.rotate_vector_inplace(encrypted, random_rotation, gal_keys);
-      // time_end = chrono::high_resolution_clock::now();
-      // time_rotate_random_sum += chrono::duration_cast<
-      //     chrono::microseconds>(time_end - time_start);
+        /*
+        [Encryption]
+        */
+        Ciphertext encrypted(context);
+        time_start = chrono::high_resolution_clock::now();
+        encryptor.encrypt(plain, encrypted);
+        time_end = chrono::high_resolution_clock::now();
+        time_encrypt_sum +=
+          chrono::duration_cast<chrono::microseconds>(time_end - time_start);
 
-      // /*
-      // [Complex Conjugate]
-      // */
-      // time_start = chrono::high_resolution_clock::now();
-      // evaluator.complex_conjugate_inplace(encrypted, gal_keys);
-      // time_end = chrono::high_resolution_clock::now();
-      // time_conjugate_sum += chrono::duration_cast<
-      //     chrono::microseconds>(time_end - time_start);
+        /*
+        [Decryption]
+        */
+        Plaintext plain2(poly_modulus_degree, 0);
+        time_start = chrono::high_resolution_clock::now();
+        decryptor.decrypt(encrypted, plain2);
+        time_end = chrono::high_resolution_clock::now();
+        time_decrypt_sum +=
+          chrono::duration_cast<chrono::microseconds>(time_end - time_start);
+
+        /*
+        [Add]
+        */
+        Ciphertext encrypted1(context);
+        ckks_encoder.encode(i + 1, plain);
+        encryptor.encrypt(plain, encrypted1);
+        Ciphertext encrypted2(context);
+        ckks_encoder.encode(i + 1, plain2);
+        encryptor.encrypt(plain2, encrypted2);
+        time_start = chrono::high_resolution_clock::now();
+        evaluator.add_inplace(encrypted1, encrypted1);
+        evaluator.add_inplace(encrypted2, encrypted2);
+        evaluator.add_inplace(encrypted1, encrypted2);
+        time_end = chrono::high_resolution_clock::now();
+        time_add_sum +=
+          chrono::duration_cast<chrono::microseconds>(time_end - time_start);
+
+        /*
+        [Multiply]
+        */
+        encrypted1.reserve(3);
+        time_start = chrono::high_resolution_clock::now();
+        evaluator.multiply_inplace(encrypted1, encrypted2);
+        time_end = chrono::high_resolution_clock::now();
+        time_multiply_sum +=
+          chrono::duration_cast<chrono::microseconds>(time_end - time_start);
+
+        if (context->using_keyswitching())
+        {
+            /*
+            [Relinearize]
+            */
+            time_start = chrono::high_resolution_clock::now();
+            evaluator.relinearize_inplace(encrypted1, relin_keys);
+            time_end = chrono::high_resolution_clock::now();
+            time_relinearize_sum += chrono::duration_cast<chrono::microseconds>(
+              time_end - time_start);
+
+            /*
+            [Rescale]
+            */
+            time_start = chrono::high_resolution_clock::now();
+            evaluator.rescale_to_next_inplace(encrypted1);
+            time_end = chrono::high_resolution_clock::now();
+            time_rescale_sum += chrono::duration_cast<chrono::microseconds>(
+              time_end - time_start);
+        }
+
+        /*
+        Print a dot to indicate progress.
+        */
+        cout << ".";
+        cout.flush();
     }
 
-    /*
-    Print a dot to indicate progress.
-    */
-    cout << ".";
+    cout << " Done" << endl << endl;
     cout.flush();
-  }
 
-  cout << " Done" << endl << endl;
-  cout.flush();
+    // auto avg_encode = time_encode_sum.count() / count;
+    // auto avg_decode = time_decode_sum.count() / count;
+    // auto avg_encrypt = time_encrypt_sum.count() / count;
+    // auto avg_decrypt = time_decrypt_sum.count() / count;
+    // auto avg_add = time_add_sum.count() / (3 * count);
+    auto avg_multiply = time_multiply_sum.count() / count;
+    // auto avg_multiply_plain = time_multiply_plain_sum.count() / count;
+    // auto avg_square = time_square_sum.count() / count;
+    // auto avg_relinearize = time_relinearize_sum.count() / count;
+    auto avg_rescale = time_rescale_sum.count() / count;
+    // auto avg_rotate_one_step = time_rotate_one_step_sum.count() / (2 *
+    // count); auto avg_rotate_random = time_rotate_random_sum.count() / count;
+    // auto avg_conjugate = time_conjugate_sum.count() / count;
 
-  // auto avg_encode = time_encode_sum.count() / count;
-  // auto avg_decode = time_decode_sum.count() / count;
-  // auto avg_encrypt = time_encrypt_sum.count() / count;
-  // auto avg_decrypt = time_decrypt_sum.count() / count;
-  // auto avg_add = time_add_sum.count() / (3 * count);
-  // auto avg_multiply = time_multiply_sum.count() / count;
-  // auto avg_multiply_plain = time_multiply_plain_sum.count() / count;
-  // auto avg_square = time_square_sum.count() / count;
-  // auto avg_relinearize = time_relinearize_sum.count() / count;
-  auto avg_rescale = time_rescale_sum.count() / count;
-  // auto avg_rotate_one_step = time_rotate_one_step_sum.count() / (2 * count);
-  // auto avg_rotate_random = time_rotate_random_sum.count() / count;
-  // auto avg_conjugate = time_conjugate_sum.count() / count;
-
-  // cout << "Average encode: " << avg_encode << " microseconds" << endl;
-  // cout << "Average decode: " << avg_decode << " microseconds" << endl;
-  // cout << "Average encrypt: " << avg_encrypt << " microseconds" << endl;
-  // cout << "Average decrypt: " << avg_decrypt << " microseconds" << endl;
-  // cout << "Average add: " << avg_add << " microseconds" << endl;
-  // cout << "Average multiply: " << avg_multiply << " microseconds" << endl;
-  // cout << "Average multiply plain: " << avg_multiply_plain << " microseconds"
-  // << endl; cout << "Average square: " << avg_square << " microseconds" <<
-  // endl;
-  if (context->using_keyswitching()) {
-    // cout << "Average relinearize: " << avg_relinearize << " microseconds" <<
+    // cout << "Average encode: " << avg_encode << " microseconds" << endl;
+    // cout << "Average decode: " << avg_decode << " microseconds" << endl;
+    // cout << "Average encrypt: " << avg_encrypt << " microseconds" << endl;
+    // cout << "Average decrypt: " << avg_decrypt << " microseconds" << endl;
+    // cout << "Average add: " << avg_add << " microseconds" << endl;
+    cout << "Average multiply: " << avg_multiply << " microseconds" << endl;
+    // cout << "Average multiply plain: " << avg_multiply_plain << "
+    // microseconds"
+    // << endl; cout << "Average square: " << avg_square << " microseconds" <<
     // endl;
-    cout << "Average rescale: " << avg_rescale << " microseconds" << endl;
-    // cout << "Average rotate vector one step: " << avg_rotate_one_step <<
-    //     " microseconds" << endl;
-    // cout << "Average rotate vector random: " << avg_rotate_random << "
-    // microseconds" << endl; cout << "Average complex conjugate: " <<
-    // avg_conjugate << " microseconds" << endl;
-  }
-  cout.flush();
+    if (context->using_keyswitching())
+    {
+        // cout << "Average relinearize: " << avg_relinearize << " microseconds"
+        // << endl;
+        cout << "Average rescale: " << avg_rescale << " microseconds" << endl;
+        // cout << "Average rotate vector one step: " << avg_rotate_one_step <<
+        //     " microseconds" << endl;
+        // cout << "Average rotate vector random: " << avg_rotate_random << "
+        // microseconds" << endl; cout << "Average complex conjugate: " <<
+        // avg_conjugate << " microseconds" << endl;
+    }
+    cout.flush();
 }
 
 // https://github.com/microsoft/SEAL/blob/master/native/examples/6_performance.cpp
 // Fixed by @musaprg
-void example_ckks_performance_default() {
-  print_example_banner(
+void example_ckks_performance_default()
+{
+    print_example_banner(
       "CKKS Performance Test with Degrees: 4096, 8192, and 16384");
 
-  // It is not recommended to use BFVDefault primes in CKKS. However, for
-  // performance test, BFVDefault primes are good enough.
-  EncryptionParameters parms(scheme_type::CKKS);
-  size_t poly_modulus_degree = 4096;
-  parms.set_poly_modulus_degree(poly_modulus_degree);
-  parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
-  ckks_performance_test(SEALContext::Create(parms));
+    // It is not recommended to use BFVDefault primes in CKKS. However, for
+    // performance test, BFVDefault primes are good enough.
+    EncryptionParameters parms(scheme_type::CKKS);
+    size_t poly_modulus_degree = 4096;
+    parms.set_poly_modulus_degree(poly_modulus_degree);
+    parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
+    ckks_performance_test(SEALContext::Create(parms));
 
-  cout << endl;
-  poly_modulus_degree = 8192;
-  parms.set_poly_modulus_degree(poly_modulus_degree);
-  parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
-  ckks_performance_test(SEALContext::Create(parms));
+    cout << endl;
+    poly_modulus_degree = 8192;
+    parms.set_poly_modulus_degree(poly_modulus_degree);
+    parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
+    ckks_performance_test(SEALContext::Create(parms));
 
-  cout << endl;
-  poly_modulus_degree = 16384;
-  parms.set_poly_modulus_degree(poly_modulus_degree);
-  parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
-  ckks_performance_test(SEALContext::Create(parms));
+    cout << endl;
+    poly_modulus_degree = 16384;
+    parms.set_poly_modulus_degree(poly_modulus_degree);
+    parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
+    ckks_performance_test(SEALContext::Create(parms));
 
-  cout << endl;
-  poly_modulus_degree = 32768;
-  parms.set_poly_modulus_degree(poly_modulus_degree);
-  parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
-  ckks_performance_test(SEALContext::Create(parms));
+    cout << endl;
+    poly_modulus_degree = 32768;
+    parms.set_poly_modulus_degree(poly_modulus_degree);
+    parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
+    ckks_performance_test(SEALContext::Create(parms));
 }
 
-CuCiphertext get_cuciphertext_from_ciphertext(const Ciphertext &ciphertext) {
-  CuCiphertext ret;
-  auto source_size = ciphertext.uint64_count();
-  ret.reserve(source_size);
+CuCiphertext get_cuciphertext_from_ciphertext(const Ciphertext &ciphertext)
+{
+    CuCiphertext ret;
+    auto source_size = ciphertext.uint64_count();
+    ret.reserve(source_size);
 
-  auto it = ciphertext.data();
-  for (size_t i = 0; i < source_size; ++i) {
-    ret.emplace_back(*it++);
-  }
+    auto it = ciphertext.data();
+    for (size_t i = 0; i < source_size; ++i)
+    {
+        ret.emplace_back(*it++);
+    }
 
-  return ret;
+    return ret;
 }
 
-void sample() {
-  EncryptionParameters parms(scheme_type::CKKS);
+void sample()
+{
+    EncryptionParameters parms(scheme_type::CKKS);
 
-  size_t poly_modulus_degree = 8192;
-  parms.set_poly_modulus_degree(poly_modulus_degree);
-  parms.set_coeff_modulus(
+    size_t poly_modulus_degree = 8192;
+    parms.set_poly_modulus_degree(poly_modulus_degree);
+    parms.set_coeff_modulus(
       CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60}));
 
-  double scale = pow(2.0, 40);
+    double scale = pow(2.0, 40);
 
-  auto context = SEALContext::Create(parms);
+    auto context = SEALContext::Create(parms);
     print_parameters(context);
     cout << endl;
 
@@ -658,7 +629,7 @@ void sample() {
     encryptor.encrypt(x_plain, x1_encrypted);
 
     auto x1data = x1_encrypted.data();
-    using uint64_t_p = uint64_t*;
+    using uint64_t_p = uint64_t *;
     uint64_t_p pointer_to_data = static_cast<uint64_t_p>(x1data);
 
     // check if it can be converted to pointer
@@ -670,9 +641,9 @@ void sample() {
     cout << *(pointer_to_data + 1) << endl;
 
     {
-      auto array = cuda::make_unique<uint64_t[]>(3);
-      //        cout << type_name<decltype(array)>() << endl;
-      proxy();
+        auto array = cuda::make_unique<uint64_t[]>(3);
+        //        cout << type_name<decltype(array)>() << endl;
+        proxy();
     }
 
     auto context_data_ptr = context->get_context_data(x1_encrypted.parms_id());
@@ -685,23 +656,30 @@ void sample() {
     auto &next_coeff_modulus = next_parms.coeff_modulus();
     vector<uint64_t> coeff_modulus;
     coeff_modulus.reserve(next_coeff_modulus.size());
-    for (auto &&v : next_coeff_modulus) {
-      coeff_modulus.push_back(v.value());
+    for (auto &&v : next_coeff_modulus)
+    {
+        coeff_modulus.push_back(v.value());
     }
     //    print_vector(coeff_modulus);
 
     auto x1_encrypted_cu = get_cuciphertext_from_ciphertext(x1_encrypted);
+
+    auto x2_encrypted = x1_encrypted;
+    auto x2_encrypted_cu = get_cuciphertext_from_ciphertext(x2_encrypted);
+
     CudaContextData cucontext =
-        get_cuda_context_data(context, x1_encrypted, x1_encrypted);
-    rescale_to_next_inplace(x1_encrypted_cu, cucontext);
+      get_cuda_context_data(context, x1_encrypted, x1_encrypted);
+    //    rescale_to_next_inplace(x1_encrypted_cu, cucontext);
+    rescale_to_next(x1_encrypted_cu, x2_encrypted_cu, cucontext);
 }
 
-int main() {
-  //    example_ckks_basics();
+int main()
+{
+    //    example_ckks_basics();
 
-  sample();
+    sample();
 
-  //  example_ckks_performance_default();
+    //  example_ckks_performance_default();
 
-  return 0;
+    return 0;
 }

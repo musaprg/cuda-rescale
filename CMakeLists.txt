@@ -19,7 +19,6 @@ cmake_policy(SET CMP0079 NEW)
 
 #include(CheckLanguage)
 #check_language(CUDA)
-#set(CUDA_NVCC_FLAGS "-std=c++11")
 #enable_language("CUDA")
 find_package(CUDA REQUIRED)
 include_directories("${CUDA_INCLUDE_DIRS}")
