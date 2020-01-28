@@ -283,8 +283,8 @@ __device__ void transform_from_ntt_inplace(
   size_t coeff_modulus_count, // coeff modulus
   size_t coeff_count,         // poly_modulus_degree
   int coeff_count_power,      // lg(poly_modulus_degree)
-  uint64_t_array_ptr ntt_inv_root_powers_div_two,
-  uint64_t_array_ptr ntt_scaled_inv_root_powers_div_two);
+  uint64_t_array ntt_inv_root_powers_div_two,
+  uint64_t_array ntt_scaled_inv_root_powers_div_two);
 
 __device__ void transform_to_ntt_inplace(
   uint64_t_array encrypted, // ciphertext
@@ -292,17 +292,16 @@ __device__ void transform_to_ntt_inplace(
   size_t coeff_modulus_count, // coeff modulus
   size_t coeff_count,         // poly_modulus_degree
   int coeff_count_power,      // lg(poly_modulus_degree)
-  uint64_t_array_ptr ntt_root_powers,
-  uint64_t_array_ptr ntt_scaled_root_powers);
+  uint64_t_array ntt_root_powers, uint64_t_array ntt_scaled_root_powers);
 
 __global__ void mod_switch_scale_to_next(
   const uint64_t_array encrypted, uint64_t_array destination,
   const uint64_t_array coeff_modulus, const uint64_t_array next_coeff_modulus,
   size_t encrypted_size, size_t destination_size, size_t coeff_modulus_count,
   size_t next_coeff_modulus_size, size_t coeff_count, int coeff_count_power,
-  uint64_t_array_ptr ntt_root_powers, uint64_t_array_ptr ntt_scaled_root_powers,
-  uint64_t_array_ptr ntt_inv_root_powers_div_two,
-  uint64_t_array_ptr ntt_scaled_inv_root_powers_div_two);
+  uint64_t_array ntt_root_powers, uint64_t_array ntt_scaled_root_powers,
+  uint64_t_array ntt_inv_root_powers_div_two,
+  uint64_t_array ntt_scaled_inv_root_powers_div_two);
 
 // For compiling test
 __global__ void kernel(void);

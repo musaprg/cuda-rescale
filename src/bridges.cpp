@@ -21,6 +21,7 @@ CudaContextData get_cuda_context_data(
     // &encrypted, Ciphertext &destination, MemoryPoolHandle pool) Extract
     // encryption parameters.
     auto &context_data = *context_data_ptr;
+    auto &parms = context_data.parms();
     auto &next_context_data = *context_data.next_context_data();
     auto &next_parms = next_context_data.parms();
 
@@ -35,12 +36,17 @@ CudaContextData get_cuda_context_data(
     auto &inv_last_coeff_mod_array =
       context_data.base_converter()->get_inv_last_coeff_mod_array();
 
-    auto last_modulus = context_data.parms().coeff_modulus().back();
+    auto last_modulus = parms.coeff_modulus().back();
 
     auto &current_ntt_table = context_data.small_ntt_tables();
-    auto &next_ntt_table = next_context_data.small_ntt_tables();
+    int coeff_count_power = current_ntt_table[0].coeff_count_power();
+    // auto &next_ntt_table = next_context_data.small_ntt_tables();
 
-    vector<vector<uint64_t>> ntt_root_powers, ntt_scaled_root_powers,
+    // 2d array version
+    // vector<vector<uint64_t>> ntt_root_powers, ntt_scaled_root_powers,
+    //   ntt_inv_root_powers_div_two, ntt_scaled_inv_root_powers_div_two;
+
+    vector<uint64_t> ntt_root_powers, ntt_scaled_root_powers,
       ntt_inv_root_powers_div_two, ntt_scaled_inv_root_powers_div_two;
 
     convert_small_ntt_tables_vec_to_uint_vec(
@@ -48,8 +54,8 @@ CudaContextData get_cuda_context_data(
       ntt_inv_root_powers_div_two, ntt_scaled_inv_root_powers_div_two);
 
     CudaContextData cuda_context_data(
-      coeff_modulus, next_coeff_modulus, coeff_count, ntt_root_powers,
-      ntt_scaled_root_powers, ntt_inv_root_powers_div_two,
+      coeff_modulus, next_coeff_modulus, coeff_count, coeff_count_power,
+      ntt_root_powers, ntt_scaled_root_powers, ntt_inv_root_powers_div_two,
       ntt_scaled_inv_root_powers_div_two);
 
     return cuda_context_data;
