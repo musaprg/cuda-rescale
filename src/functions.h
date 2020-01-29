@@ -5,6 +5,7 @@
 #pragma once
 
 #include <thrust/transform.h>
+#include <cassert>
 
 #include "cuda.hpp"
 #include "cuda_context_data.h"
@@ -16,6 +17,7 @@
 using namespace std;
 
 constexpr size_t ENCRYPTED_SIZE = 2;
+constexpr size_t THREADS_PER_BLOCK = 256;
 
 using CuCiphertext = vector<uint64_t>;
 using int_array = int *;
@@ -26,6 +28,7 @@ using uint64_t_array_ptr_ptr = uint64_t_array_ptr *;
 
 // void initialize(std::shared_ptr<seal::SEALContext> context);
 
+// NOTE: Works fine
 template <typename T>
 inline void print_vector_hoge(const T &v)
 {
@@ -36,6 +39,22 @@ inline void print_vector_hoge(const T &v)
     std::cout << endl;
 }
 
+template <typename T>
+inline bool is_equal_hoge(const T &a, const T &b)
+{
+    auto bit = b.begin();
+    for (auto ait = a.begin(); ait != a.end(); ait++, bit++)
+    {
+        cout << *ait << " " << *bit << endl;
+        if (*ait != *bit)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+// NOTE: Works fine
 __device__ inline void set_uint_uint(const uint64_t *value, size_t uint64_count,
                                      uint64_t *result)
 {
@@ -45,12 +64,14 @@ __device__ inline void set_uint_uint(const uint64_t *value, size_t uint64_count,
     }
 }
 
+// NOTE: Works fine
 __device__ inline void set_poly_poly(const uint64_t *poly, size_t coeff_count,
                                      size_t coeff_uint64_count,
                                      uint64_t *result)
 {
     set_uint_uint(poly, coeff_count * coeff_uint64_count, result);
 }
+
 template <typename T, typename S>
 __device__ [[nodiscard]] inline unsigned char add_uint64(
   T operand1, S operand2, unsigned char carry, unsigned long long *result)
@@ -277,7 +298,7 @@ __device__ inline void ntt_negacyclic_harvey(uint64_t_array operand,
     }
 }
 
-__device__ void transform_from_ntt_inplace(
+__global__ void transform_from_ntt_inplace(
   uint64_t_array encrypted_ntt, // ciphertext
   uint64_t_array coeff_modulus,
   size_t coeff_modulus_count, // coeff modulus
@@ -286,7 +307,7 @@ __device__ void transform_from_ntt_inplace(
   uint64_t_array ntt_inv_root_powers_div_two,
   uint64_t_array ntt_scaled_inv_root_powers_div_two);
 
-__device__ void transform_to_ntt_inplace(
+__global__ void transform_to_ntt_inplace(
   uint64_t_array encrypted, // ciphertext
   uint64_t_array coeff_modulus,
   size_t coeff_modulus_count, // coeff modulus

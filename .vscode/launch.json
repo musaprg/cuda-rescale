@@ -14,7 +14,10 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
-            "MIMode": "gdb",
+            // "linux": {
+            //     "MIMode": "gdb",
+            //     "midDebuggerPath": "/usr/local/cuda/bin/cuda-gdb"
+            // },
             "setupCommands": [
                 {
                     "description": "gdb の再フォーマットを有効にする",
