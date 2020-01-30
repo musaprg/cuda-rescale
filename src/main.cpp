@@ -20,7 +20,6 @@
 #include "timer.hpp"
 
 using namespace std;
-using namespace seal;
 
 /*template <class T>
 std::string
@@ -55,28 +54,28 @@ void example_ckks_basics()
 {
     print_example_banner("Example: CKKS Basics");
 
-    EncryptionParameters parms(scheme_type::CKKS);
+    seal::EncryptionParameters parms(seal::scheme_type::CKKS);
 
     size_t poly_modulus_degree = 8192;
     parms.set_poly_modulus_degree(poly_modulus_degree);
     parms.set_coeff_modulus(
-      CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60}));
+      seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60}));
 
     double scale = pow(2.0, 40);
 
-    auto context = SEALContext::Create(parms);
+    auto context = seal::SEALContext::Create(parms);
     print_parameters(context);
     cout << endl;
 
-    KeyGenerator keygen(context);
+    seal::KeyGenerator keygen(context);
     auto public_key = keygen.public_key();
     auto secret_key = keygen.secret_key();
     auto relin_keys = keygen.relin_keys();
-    Encryptor encryptor(context, public_key);
-    Evaluator evaluator(context);
-    Decryptor decryptor(context, secret_key);
+    seal::Encryptor encryptor(context, public_key);
+    seal::Evaluator evaluator(context);
+    seal::Decryptor decryptor(context, secret_key);
 
-    CKKSEncoder encoder(context);
+    seal::CKKSEncoder encoder(context);
     size_t slot_count = encoder.slot_count();
     cout << "Number of slots: " << slot_count << endl;
 
@@ -98,23 +97,23 @@ void example_ckks_basics()
     CKKSEncoder::encode that encodes the given floating-point value to every
     slot in the vector.
     */
-    Plaintext plain_coeff3, plain_coeff1, plain_coeff0;
+    seal::Plaintext plain_coeff3, plain_coeff1, plain_coeff0;
     encoder.encode(3.14159265, scale, plain_coeff3);
     encoder.encode(0.4, scale, plain_coeff1);
     encoder.encode(1.0, scale, plain_coeff0);
 
-    Plaintext x_plain;
+    seal::Plaintext x_plain;
     print_line(__LINE__);
     cout << "Encode input vectors." << endl;
     encoder.encode(input, scale, x_plain);
-    Ciphertext x1_encrypted;
+    seal::Ciphertext x1_encrypted;
     encryptor.encrypt(x_plain, x1_encrypted);
 
     /*
     To compute x^3 we first compute x^2 and relinearize. However, the scale has
     now grown to 2^80.
     */
-    Ciphertext x3_encrypted;
+    seal::Ciphertext x3_encrypted;
     print_line(__LINE__);
     cout << "Compute x^2 and relinearize:" << endl;
     evaluator.square(x1_encrypted, x3_encrypted);
@@ -145,7 +144,7 @@ void example_ckks_basics()
     */
     print_line(__LINE__);
     cout << "Compute and rescale PI*x." << endl;
-    Ciphertext x1_encrypted_coeff3;
+    seal::Ciphertext x1_encrypted_coeff3;
     evaluator.multiply_plain(x1_encrypted, plain_coeff3, x1_encrypted_coeff3);
     cout << "    + Scale of PI*x before rescale: "
          << log2(x1_encrypted_coeff3.scale()) << " bits" << endl;
@@ -262,7 +261,7 @@ void example_ckks_basics()
     */
     print_line(__LINE__);
     cout << "Normalize encryption parameters to the lowest level." << endl;
-    parms_id_type last_parms_id = x3_encrypted.parms_id();
+    seal::parms_id_type last_parms_id = x3_encrypted.parms_id();
     evaluator.mod_switch_to_inplace(x1_encrypted, last_parms_id);
     evaluator.mod_switch_to_inplace(plain_coeff0, last_parms_id);
 
@@ -271,14 +270,14 @@ void example_ckks_basics()
     */
     print_line(__LINE__);
     cout << "Compute PI*x^3 + 0.4*x + 1." << endl;
-    Ciphertext encrypted_result;
+    seal::Ciphertext encrypted_result;
     evaluator.add(x3_encrypted, x1_encrypted, encrypted_result);
     evaluator.add_plain_inplace(encrypted_result, plain_coeff0);
 
     /*
     First print the true result.
     */
-    Plaintext plain_result;
+    seal::Plaintext plain_result;
     print_line(__LINE__);
     cout << "Decrypt and decode PI*x^3 + 0.4x + 1." << endl;
     cout << "    + Expected result:" << endl;
@@ -308,7 +307,7 @@ void example_ckks_basics()
 
 // https://github.com/microsoft/SEAL/blob/master/native/examples/6_performance.cpp
 // Fixed by @musaprg
-void ckks_performance_test(shared_ptr<SEALContext> context)
+void ckks_performance_test(shared_ptr<seal::SEALContext> context)
 {
     chrono::high_resolution_clock::time_point time_start, time_end;
 
@@ -319,14 +318,13 @@ void ckks_performance_test(shared_ptr<SEALContext> context)
     size_t poly_modulus_degree = parms.poly_modulus_degree();
 
     cout << "Generating secret/public keys: ";
-    KeyGenerator keygen(context);
+    seal::KeyGenerator keygen(context);
     cout << "Done" << endl;
 
     auto secret_key = keygen.secret_key();
     auto public_key = keygen.public_key();
 
-    RelinKeys relin_keys;
-    GaloisKeys gal_keys;
+    seal::RelinKeys relin_keys;
     chrono::microseconds time_diff;
     if (context->using_keyswitching())
     {
@@ -344,20 +342,12 @@ void ckks_performance_test(shared_ptr<SEALContext> context)
                  << endl;
             return;
         }
-
-        cout << "Generating Galois keys: ";
-        time_start = chrono::high_resolution_clock::now();
-        gal_keys = keygen.galois_keys();
-        time_end = chrono::high_resolution_clock::now();
-        time_diff =
-          chrono::duration_cast<chrono::microseconds>(time_end - time_start);
-        cout << "Done [" << time_diff.count() << " microseconds]" << endl;
     }
 
-    Encryptor encryptor(context, public_key);
-    Decryptor decryptor(context, secret_key);
-    Evaluator evaluator(context);
-    CKKSEncoder ckks_encoder(context);
+    seal::Encryptor encryptor(context, public_key);
+    seal::Decryptor decryptor(context, secret_key);
+    seal::Evaluator evaluator(context);
+    seal::CKKSEncoder ckks_encoder(context);
 
     chrono::microseconds time_encode_sum(0);
     chrono::microseconds time_decode_sum(0);
@@ -369,14 +359,11 @@ void ckks_performance_test(shared_ptr<SEALContext> context)
     chrono::microseconds time_square_sum(0);
     chrono::microseconds time_relinearize_sum(0);
     chrono::microseconds time_rescale_sum(0);
-    chrono::microseconds time_rotate_one_step_sum(0);
-    chrono::microseconds time_rotate_random_sum(0);
-    chrono::microseconds time_conjugate_sum(0);
 
     /*
     How many times to run the test?
     */
-    long long count = 10;
+    long long count = 100;
 
     /*
     Populate a vector of floating-point values to batch.
@@ -396,7 +383,7 @@ void ckks_performance_test(shared_ptr<SEALContext> context)
         For scale we use the square root of the last coeff_modulus prime
         from parms.
         */
-        Plaintext plain(
+        seal::Plaintext plain(
           parms.poly_modulus_degree() * parms.coeff_modulus().size(), 0);
         /*
          */
@@ -421,7 +408,7 @@ void ckks_performance_test(shared_ptr<SEALContext> context)
         /*
         [Encryption]
         */
-        Ciphertext encrypted(context);
+        seal::Ciphertext encrypted(context);
         time_start = chrono::high_resolution_clock::now();
         encryptor.encrypt(plain, encrypted);
         time_end = chrono::high_resolution_clock::now();
@@ -431,7 +418,7 @@ void ckks_performance_test(shared_ptr<SEALContext> context)
         /*
         [Decryption]
         */
-        Plaintext plain2(poly_modulus_degree, 0);
+        seal::Plaintext plain2(poly_modulus_degree, 0);
         time_start = chrono::high_resolution_clock::now();
         decryptor.decrypt(encrypted, plain2);
         time_end = chrono::high_resolution_clock::now();
@@ -441,10 +428,10 @@ void ckks_performance_test(shared_ptr<SEALContext> context)
         /*
         [Add]
         */
-        Ciphertext encrypted1(context);
+        seal::Ciphertext encrypted1(context);
         ckks_encoder.encode(i + 1, plain);
         encryptor.encrypt(plain, encrypted1);
-        Ciphertext encrypted2(context);
+        seal::Ciphertext encrypted2(context);
         ckks_encoder.encode(i + 1, plain2);
         encryptor.encrypt(plain2, encrypted2);
         time_start = chrono::high_resolution_clock::now();
@@ -496,40 +483,31 @@ void ckks_performance_test(shared_ptr<SEALContext> context)
     cout << " Done" << endl << endl;
     cout.flush();
 
-    // auto avg_encode = time_encode_sum.count() / count;
-    // auto avg_decode = time_decode_sum.count() / count;
-    // auto avg_encrypt = time_encrypt_sum.count() / count;
-    // auto avg_decrypt = time_decrypt_sum.count() / count;
-    // auto avg_add = time_add_sum.count() / (3 * count);
+    auto avg_encode = time_encode_sum.count() / count;
+    auto avg_decode = time_decode_sum.count() / count;
+    auto avg_encrypt = time_encrypt_sum.count() / count;
+    auto avg_decrypt = time_decrypt_sum.count() / count;
+    auto avg_add = time_add_sum.count() / (3 * count);
     auto avg_multiply = time_multiply_sum.count() / count;
-    // auto avg_multiply_plain = time_multiply_plain_sum.count() / count;
-    // auto avg_square = time_square_sum.count() / count;
-    // auto avg_relinearize = time_relinearize_sum.count() / count;
+    auto avg_multiply_plain = time_multiply_plain_sum.count() / count;
+    auto avg_square = time_square_sum.count() / count;
+    auto avg_relinearize = time_relinearize_sum.count() / count;
     auto avg_rescale = time_rescale_sum.count() / count;
-    // auto avg_rotate_one_step = time_rotate_one_step_sum.count() / (2 *
-    // count); auto avg_rotate_random = time_rotate_random_sum.count() / count;
-    // auto avg_conjugate = time_conjugate_sum.count() / count;
 
-    // cout << "Average encode: " << avg_encode << " microseconds" << endl;
-    // cout << "Average decode: " << avg_decode << " microseconds" << endl;
-    // cout << "Average encrypt: " << avg_encrypt << " microseconds" << endl;
-    // cout << "Average decrypt: " << avg_decrypt << " microseconds" << endl;
-    // cout << "Average add: " << avg_add << " microseconds" << endl;
+    cout << "Average encode: " << avg_encode << " microseconds" << endl;
+    cout << "Average decode: " << avg_decode << " microseconds" << endl;
+    cout << "Average encrypt: " << avg_encrypt << " microseconds" << endl;
+    cout << "Average decrypt: " << avg_decrypt << " microseconds" << endl;
+    cout << "Average add: " << avg_add << " microseconds" << endl;
     cout << "Average multiply: " << avg_multiply << " microseconds" << endl;
-    // cout << "Average multiply plain: " << avg_multiply_plain << "
-    // microseconds"
-    // << endl; cout << "Average square: " << avg_square << " microseconds" <<
-    // endl;
+    cout << "Average multiply plain: " << avg_multiply_plain << "microseconds "
+         << endl;
+    cout << "Average square: " << avg_square << " microseconds" << endl;
     if (context->using_keyswitching())
     {
-        // cout << "Average relinearize: " << avg_relinearize << " microseconds"
-        // << endl;
+        cout << "Average relinearize: " << avg_relinearize << " microseconds"
+             << endl;
         cout << "Average rescale: " << avg_rescale << " microseconds" << endl;
-        // cout << "Average rotate vector one step: " << avg_rotate_one_step <<
-        //     " microseconds" << endl;
-        // cout << "Average rotate vector random: " << avg_rotate_random << "
-        // microseconds" << endl; cout << "Average complex conjugate: " <<
-        // avg_conjugate << " microseconds" << endl;
     }
     cout.flush();
 }
@@ -543,68 +521,57 @@ void example_ckks_performance_default()
 
     // It is not recommended to use BFVDefault primes in CKKS. However, for
     // performance test, BFVDefault primes are good enough.
-    EncryptionParameters parms(scheme_type::CKKS);
+    seal::EncryptionParameters parms(seal::scheme_type::CKKS);
     size_t poly_modulus_degree = 4096;
     parms.set_poly_modulus_degree(poly_modulus_degree);
-    parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
-    ckks_performance_test(SEALContext::Create(parms));
+    parms.set_coeff_modulus(
+      seal::CoeffModulus::BFVDefault(poly_modulus_degree));
+    ckks_performance_test(seal::SEALContext::Create(parms));
 
     cout << endl;
     poly_modulus_degree = 8192;
     parms.set_poly_modulus_degree(poly_modulus_degree);
-    parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
-    ckks_performance_test(SEALContext::Create(parms));
+    parms.set_coeff_modulus(
+      seal::CoeffModulus::BFVDefault(poly_modulus_degree));
+    ckks_performance_test(seal::SEALContext::Create(parms));
 
     cout << endl;
     poly_modulus_degree = 16384;
     parms.set_poly_modulus_degree(poly_modulus_degree);
-    parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
-    ckks_performance_test(SEALContext::Create(parms));
+    parms.set_coeff_modulus(
+      seal::CoeffModulus::BFVDefault(poly_modulus_degree));
+    ckks_performance_test(seal::SEALContext::Create(parms));
 
     cout << endl;
     poly_modulus_degree = 32768;
     parms.set_poly_modulus_degree(poly_modulus_degree);
-    parms.set_coeff_modulus(CoeffModulus::BFVDefault(poly_modulus_degree));
-    ckks_performance_test(SEALContext::Create(parms));
-}
-
-CuCiphertext get_cuciphertext_from_ciphertext(const Ciphertext &ciphertext)
-{
-    CuCiphertext ret;
-    auto source_size = ciphertext.uint64_count();
-    ret.reserve(source_size);
-
-    auto it = ciphertext.data();
-    for (size_t i = 0; i < source_size; ++i)
-    {
-        ret.emplace_back(*it++);
-    }
-
-    return ret;
+    parms.set_coeff_modulus(
+      seal::CoeffModulus::BFVDefault(poly_modulus_degree));
+    ckks_performance_test(seal::SEALContext::Create(parms));
 }
 
 void sample()
 {
-    EncryptionParameters parms(scheme_type::CKKS);
+    seal::EncryptionParameters parms(seal::scheme_type::CKKS);
 
     size_t poly_modulus_degree = 8192;
     parms.set_poly_modulus_degree(poly_modulus_degree);
     parms.set_coeff_modulus(
-      CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60}));
+      seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60}));
 
     double scale = pow(2.0, 40);
 
-    auto context = SEALContext::Create(parms);
+    auto context = seal::SEALContext::Create(parms);
     print_parameters(context);
     cout << endl;
 
-    KeyGenerator keygen(context);
+    seal::KeyGenerator keygen(context);
     auto public_key = keygen.public_key();
     auto secret_key = keygen.secret_key();
     auto relin_keys = keygen.relin_keys();
-    Encryptor encryptor(context, public_key);
+    seal::Encryptor encryptor(context, public_key);
 
-    CKKSEncoder encoder(context);
+    seal::CKKSEncoder encoder(context);
     size_t slot_count = encoder.slot_count();
     cout << "Number of slots: " << slot_count << endl;
 
@@ -621,24 +588,24 @@ void sample()
 
     cout << "Evaluating polynomial PI*x^3 + 0.4x + 1 ..." << endl;
 
-    Plaintext x_plain;
+    seal::Plaintext x_plain;
     print_line(__LINE__);
     cout << "Encode input vectors." << endl;
     encoder.encode(input, scale, x_plain);
-    Ciphertext x1_encrypted;
+    seal::Ciphertext x1_encrypted;
     encryptor.encrypt(x_plain, x1_encrypted);
 
-    auto x1data = x1_encrypted.data();
-    using uint64_t_p = uint64_t *;
-    uint64_t_p pointer_to_data = static_cast<uint64_t_p>(x1data);
+    // auto x1data = x1_encrypted.data();
+    // using uint64_t_p = uint64_t *;
+    // uint64_t_p pointer_to_data = static_cast<uint64_t_p>(x1data);
 
-    // check if it can be converted to pointer
-    cout << *x1data << endl;
-    cout << *pointer_to_data << endl;
-    // ok
+    // // check if it can be converted to pointer
+    // cout << *x1data << endl;
+    // cout << *pointer_to_data << endl;
+    // // ok
 
-    cout << *(x1data + 1) << endl;
-    cout << *(pointer_to_data + 1) << endl;
+    // cout << *(x1data + 1) << endl;
+    // cout << *(pointer_to_data + 1) << endl;
 
     {
         auto array = cuda::make_unique<uint64_t[]>(3);
@@ -653,13 +620,13 @@ void sample()
 
     // smallmodulus -> uint64_t
     // it seems not to cast simply.
-    auto &next_coeff_modulus = next_parms.coeff_modulus();
-    vector<uint64_t> coeff_modulus;
-    coeff_modulus.reserve(next_coeff_modulus.size());
-    for (auto &&v : next_coeff_modulus)
-    {
-        coeff_modulus.push_back(v.value());
-    }
+    // auto &next_coeff_modulus = next_parms.coeff_modulus();
+    // vector<uint64_t> coeff_modulus;
+    // coeff_modulus.reserve(next_coeff_modulus.size());
+    // for (auto &&v : next_coeff_modulus)
+    // {
+    //     coeff_modulus.push_back(v.value());
+    // }
     //    print_vector(coeff_modulus);
 
     auto x1_encrypted_cu = get_cuciphertext_from_ciphertext(x1_encrypted);
@@ -673,13 +640,109 @@ void sample()
     rescale_to_next(x1_encrypted_cu, x2_encrypted_cu, cucontext);
 }
 
+void validate_implementation()
+{
+    seal::EncryptionParameters parms(seal::scheme_type::CKKS);
+
+    size_t poly_modulus_degree = 8192;
+    parms.set_poly_modulus_degree(poly_modulus_degree);
+    parms.set_coeff_modulus(
+      seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60}));
+
+    double scale = pow(2.0, 40);
+
+    auto context = seal::SEALContext::Create(parms);
+    print_parameters(context);
+    cout << endl;
+
+    seal::KeyGenerator keygen(context);
+    auto public_key = keygen.public_key();
+    auto secret_key = keygen.secret_key();
+    auto relin_keys = keygen.relin_keys();
+    seal::Encryptor encryptor(context, public_key);
+    seal::Evaluator evaluator(context);
+    seal::Decryptor decryptor(context, secret_key);
+
+    seal::CKKSEncoder encoder(context);
+    size_t slot_count = encoder.slot_count();
+    cout << "Number of slots: " << slot_count << endl;
+
+    vector<double> input;
+    input.reserve(slot_count);
+    double curr_point = 0;
+    double step_size = 1.0 / (static_cast<double>(slot_count) - 1);
+    for (size_t i = 0; i < slot_count; i++, curr_point += step_size)
+    {
+        input.push_back(curr_point);
+    }
+    cout << "Input vector: " << endl;
+    print_vector(input, 3, 7);
+
+    seal::Plaintext x_plain, plain_PI;
+    print_line(__LINE__);
+    cout << "Encode input vectors." << endl;
+    encoder.encode(input, scale, x_plain);
+    encoder.encode(3.14159265, scale, plain_PI);
+    seal::Ciphertext x1_encrypted;
+    encryptor.encrypt(x_plain, x1_encrypted);
+
+    print_line(__LINE__);
+    cout << "Compute and rescale 3.14*x." << endl;
+    evaluator.multiply_plain_inplace(x1_encrypted, plain_PI);
+    cout << "    + Scale of 3.14*x before rescale: "
+         << log2(x1_encrypted.scale()) << " bits" << endl;
+
+    seal::Ciphertext x1_encrypted_copy = x1_encrypted;
+
+    seal::Plaintext plain_result_cpu_rescaled;
+    vector<double> result_cpu_rescaled;
+    print_line(__LINE__);
+    cout << "Rescale with CPU" << endl;
+    evaluator.rescale_to_next_inplace(x1_encrypted);
+    cout << "    + Scale of 3.14*x after rescale: "
+         << log2(x1_encrypted.scale()) << " bits" << endl;
+
+    {
+        cout << "    + encrypted data after rescale in CPU: " << endl;
+        auto x1_encrypted_vec = get_cuciphertext_from_ciphertext(x1_encrypted);
+        print_vector(x1_encrypted_vec, 5, 0);
+
+        cout << "    + encrypted data after rescale in GPU: " << endl;
+        auto x1_encrypted_copy_vec =
+          get_cuciphertext_from_ciphertext(x1_encrypted_copy);
+        auto x2_encrypted_vec = x1_encrypted_copy_vec;
+        CudaContextData cucontext =
+          get_cuda_context_data(context, x1_encrypted_copy, x1_encrypted_copy);
+        rescale_to_next(x1_encrypted_copy_vec, x2_encrypted_vec, cucontext);
+        print_vector(x2_encrypted_vec, 5, 0);
+    }
+
+    print_line(__LINE__);
+    cout << "Validate the results" << endl;
+    cout << "    + Expected result:" << endl;
+    vector<double> true_result;
+    for (size_t i = 0; i < input.size(); i++)
+    {
+        double x = input[i];
+        true_result.push_back(3.14159265 * x);
+    }
+    print_vector(true_result, 3, 7);
+
+    decryptor.decrypt(x1_encrypted, plain_result_cpu_rescaled);
+    encoder.decode(plain_result_cpu_rescaled, result_cpu_rescaled);
+    cout << "    + Computed result ...... Correct." << endl;
+    print_vector(result_cpu_rescaled, 3, 7);
+}
+
 int main()
 {
-    //    example_ckks_basics();
+    // example_ckks_basics();
 
-    sample();
+    // sample();
 
-    //  example_ckks_performance_default();
+    // validate_implementation();
+
+    example_ckks_performance_default();
 
     return 0;
 }
