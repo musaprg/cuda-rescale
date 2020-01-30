@@ -360,7 +360,7 @@ void ckks_performance_test(shared_ptr<seal::SEALContext> context)
     /*
     How many times to run the test?
     */
-    long long count = 100;
+    long long count = 10;
 
     /*
     Populate a vector of floating-point values to batch.
