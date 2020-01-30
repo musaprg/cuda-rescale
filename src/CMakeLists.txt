@@ -15,6 +15,7 @@ add_library(cudalib
 
 set_target_properties(cudalib PROPERTIES
         CUDA_SEPERABLE_COMPILATION ON)
+set_target_properties(cudalib PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 
 target_sources(sample
         PRIVATE

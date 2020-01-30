@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <iostream>
+
 #include "functions.h"
 
 /*
@@ -25,6 +26,7 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
                      const CudaContextData &context)
 {
     // http://www.slis.tsukuba.ac.jp/~fujisawa.makoto.fu/cgi-bin/wiki/index.php?CUDA%A4%C7%B9%D4%CE%F3%B1%E9%BB%BB%A1%A7%B2%C3%B8%BA%BB%BB
+    cudaSetDevice(CUDA_DEVICE_ID);
 
     size_t encrypted_size = encrypted.size();
     // TODO: precaliculate destination size from input parameters.

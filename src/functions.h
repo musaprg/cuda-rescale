@@ -5,6 +5,7 @@
 #pragma once
 
 #include <thrust/transform.h>
+
 #include <cassert>
 
 #include "cuda.hpp"
@@ -16,6 +17,7 @@
 
 using namespace std;
 
+constexpr int CUDA_DEVICE_ID = 4;
 constexpr size_t ENCRYPTED_SIZE = 2;
 constexpr size_t THREADS_PER_BLOCK = 256;
 
