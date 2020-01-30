@@ -1,0 +1,95 @@
+
++---------------------------------------------------------------------------------+
+|         CKKS Performance Test with Degrees: 4096, 8192, 16384 and 32768         |
++---------------------------------------------------------------------------------+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 4096
+|   coeff_modulus size: 109 (36 + 36 + 37) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [12689 microseconds]
+Running tests .......... Done
+
+Average encode: 3389 microseconds
+Average decode: 4421 microseconds
+Average encrypt: 12518 microseconds
+Average decrypt: 519 microseconds
+Average add: 88 microseconds
+Average multiply (encrypted vs encrypted): 1665 microseconds
+Average relinearize: 8898 microseconds
+Average rescale: 3315 microseconds
+Ratio of multiply: 11.9974
+Ratio of relinearization: 64.1159
+Ratio of rescale: 23.8867
+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 8192
+|   coeff_modulus size: 218 (43 + 43 + 44 + 44 + 44) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [52556 microseconds]
+Running tests .......... Done
+
+Average encode: 5875 microseconds
+Average decode: 12761 microseconds
+Average encrypt: 27834 microseconds
+Average decrypt: 1512 microseconds
+Average add: 247 microseconds
+Average multiply (encrypted vs encrypted): 4925 microseconds
+Average relinearize: 32874 microseconds
+Average rescale: 12403 microseconds
+Ratio of multiply: 9.81037
+Ratio of relinearization: 65.4834
+Ratio of rescale: 24.7062
+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 16384
+|   coeff_modulus size: 438 (48 + 48 + 48 + 49 + 49 + 49 + 49 + 49 + 49) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [343955 microseconds]
+Running tests .......... Done
+
+Average encode: 19197 microseconds
+Average decode: 58956 microseconds
+Average encrypt: 99320 microseconds
+Average decrypt: 6100 microseconds
+Average add: 975 microseconds
+Average multiply (encrypted vs encrypted): 20305 microseconds
+Average relinearize: 190508 microseconds
+Average rescale: 56074 microseconds
+Ratio of multiply: 7.60809
+Ratio of relinearization: 71.3815
+Ratio of rescale: 21.0104
+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 32768
+|   coeff_modulus size: 881 (55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 56) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [2257874 microseconds]
+Running tests .......... Done
+
+Average encode: 63838 microseconds
+Average decode: 296820 microseconds
+Average encrypt: 362247 microseconds
+Average decrypt: 23087 microseconds
+Average add: 3698 microseconds
+Average multiply (encrypted vs encrypted): 77193 microseconds
+Average relinearize: 1124840 microseconds
+Average rescale: 225865 microseconds
+Ratio of multiply: 5.40606
+Ratio of relinearization: 78.7759
+Ratio of rescale: 15.818
