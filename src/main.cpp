@@ -355,8 +355,6 @@ void ckks_performance_test(shared_ptr<seal::SEALContext> context)
     chrono::microseconds time_decrypt_sum(0);
     chrono::microseconds time_add_sum(0);
     chrono::microseconds time_multiply_sum(0);
-    chrono::microseconds time_multiply_plain_sum(0);
-    chrono::microseconds time_square_sum(0);
     chrono::microseconds time_relinearize_sum(0);
     chrono::microseconds time_rescale_sum(0);
 
@@ -489,8 +487,6 @@ void ckks_performance_test(shared_ptr<seal::SEALContext> context)
     auto avg_decrypt = time_decrypt_sum.count() / count;
     auto avg_add = time_add_sum.count() / (3 * count);
     auto avg_multiply = time_multiply_sum.count() / count;
-    auto avg_multiply_plain = time_multiply_plain_sum.count() / count;
-    auto avg_square = time_square_sum.count() / count;
     auto avg_relinearize = time_relinearize_sum.count() / count;
     auto avg_rescale = time_rescale_sum.count() / count;
 
@@ -499,16 +495,28 @@ void ckks_performance_test(shared_ptr<seal::SEALContext> context)
     cout << "Average encrypt: " << avg_encrypt << " microseconds" << endl;
     cout << "Average decrypt: " << avg_decrypt << " microseconds" << endl;
     cout << "Average add: " << avg_add << " microseconds" << endl;
-    cout << "Average multiply: " << avg_multiply << " microseconds" << endl;
-    cout << "Average multiply plain: " << avg_multiply_plain << "microseconds "
-         << endl;
-    cout << "Average square: " << avg_square << " microseconds" << endl;
+    cout << "Average multiply (encrypted vs encrypted): " << avg_multiply
+         << " microseconds" << endl;
     if (context->using_keyswitching())
     {
         cout << "Average relinearize: " << avg_relinearize << " microseconds"
              << endl;
         cout << "Average rescale: " << avg_rescale << " microseconds" << endl;
     }
+
+    auto sum_of_multiplication_time =
+      avg_multiply + avg_relinearize + avg_rescale;
+    cout << "Ratio of multiply: "
+         << static_cast<double>(avg_multiply) * 100 / sum_of_multiplication_time
+         << endl;
+    cout << "Ratio of relinearization: "
+         << static_cast<double>(avg_relinearize) * 100 /
+              sum_of_multiplication_time
+         << endl;
+    cout << "Ratio of rescale: "
+         << static_cast<double>(avg_rescale) * 100 / sum_of_multiplication_time
+         << endl;
+
     cout.flush();
 }
 
@@ -517,7 +525,7 @@ void ckks_performance_test(shared_ptr<seal::SEALContext> context)
 void example_ckks_performance_default()
 {
     print_example_banner(
-      "CKKS Performance Test with Degrees: 4096, 8192, and 16384");
+      "CKKS Performance Test with Degrees: 4096, 8192, 16384 and 32768");
 
     // It is not recommended to use BFVDefault primes in CKKS. However, for
     // performance test, BFVDefault primes are good enough.
