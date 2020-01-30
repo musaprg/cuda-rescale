@@ -11,6 +11,23 @@
 
 using namespace std;
 
+using CuCiphertext = vector<uint64_t>;
+
+inline CuCiphertext get_cuciphertext_from_ciphertext(const seal::Ciphertext &ciphertext)
+{
+    CuCiphertext ret;
+    auto source_size = ciphertext.uint64_count();
+    ret.reserve(source_size);
+
+    auto it = ciphertext.data();
+    for (size_t i = 0; i < source_size; ++i)
+    {
+        ret.emplace_back(*it++);
+    }
+
+    return ret;
+}
+
 CudaContextData get_cuda_context_data(const shared_ptr<seal::SEALContext> &,
                                       const seal::Ciphertext &,
                                       const seal::Ciphertext &);

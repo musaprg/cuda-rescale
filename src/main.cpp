@@ -15,7 +15,6 @@
 #include "bridges.h"
 #include "examples.hpp"
 #include "functions.h"
-#include "seal/cudaevaluator.h"
 #include "seal/seal.h"
 #include "timer.hpp"
 
