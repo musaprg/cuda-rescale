@@ -42,10 +42,6 @@ CudaContextData get_cuda_context_data(
     int coeff_count_power = current_ntt_table[0].coeff_count_power();
     // auto &next_ntt_table = next_context_data.small_ntt_tables();
 
-    // 2d array version
-    // vector<vector<uint64_t>> ntt_root_powers, ntt_scaled_root_powers,
-    //   ntt_inv_root_powers_div_two, ntt_scaled_inv_root_powers_div_two;
-
     vector<uint64_t> ntt_root_powers, ntt_scaled_root_powers,
       ntt_inv_root_powers_div_two, ntt_scaled_inv_root_powers_div_two;
 

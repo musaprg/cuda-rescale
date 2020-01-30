@@ -30,15 +30,22 @@ using uint64_t_array_ptr_ptr = uint64_t_array_ptr *;
 
 // void initialize(std::shared_ptr<seal::SEALContext> context);
 
+inline void print_log(const string &s, size_t level = 0)
+{
+    for (size_t i = 0; i < level; i++)
+        cout << "\t";
+    cout << s << endl;
+}
+
 // NOTE: Works fine
 template <typename T>
 inline void print_vector_hoge(const T &v)
 {
     for (auto &&item : v)
     {
-        std::cout << item << " ";
+        cout << item << " ";
     }
-    std::cout << endl;
+    cout << endl;
 }
 
 template <typename T>

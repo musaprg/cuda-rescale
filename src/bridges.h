@@ -7,13 +7,16 @@
 #include <memory>
 
 #include "cuda_context_data.h"
+// #include "functions.h"
 #include "seal/seal.h"
 
 using namespace std;
 
+// TODO: duplicated to functions.h, refine these code.
 using CuCiphertext = vector<uint64_t>;
 
-inline CuCiphertext get_cuciphertext_from_ciphertext(const seal::Ciphertext &ciphertext)
+inline CuCiphertext get_cuciphertext_from_ciphertext(
+  const seal::Ciphertext &ciphertext)
 {
     CuCiphertext ret;
     auto source_size = ciphertext.uint64_count();

@@ -38,6 +38,7 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     size_t next_ciphertext_size =
       coeff_count * ENCRYPTED_SIZE * next_coeff_modulus_size;
 
+    print_log("Allocate Device Memeory");
     auto device_encrypted = cuda::make_unique<uint64_t[]>(encrypted_size);
     auto device_destination = cuda::make_unique<uint64_t[]>(destination_size);
     auto device_coeff_modulus =
@@ -56,6 +57,7 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     auto device_ntt_scaled_inv_root_powers_div_two =
       cuda::make_unique<uint64_t[]>(coeff_count * coeff_modulus_size);
 
+    print_log("Allocate Device Memeory");
     cuda::CHECK_CUDA_ERROR(::cudaMemcpyAsync(
       device_encrypted.get(), encrypted.data(),
       sizeof(uint64_t) * encrypted_size, cudaMemcpyHostToDevice));
@@ -124,6 +126,7 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     //   sizeof(uint64_t) * destination_size, cudaMemcpyDeviceToHost));
     // print_vector_hoge(destination); // check result
 
+    print_log("Perform mod_switch_scale_to_next");
     mod_switch_scale_to_next<<<num_blocks, THREADS_PER_BLOCK>>>(
       device_encrypted.get(), device_destination.get(),
       device_coeff_modulus.get(), device_next_coeff_modulus.get(),
@@ -135,6 +138,7 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     assert(equal(encrypted.begin(), encrypted.end(), destination.begin()));
     cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
 
+    print_log("Get the result from GPU");
     cuda::CHECK_CUDA_ERROR(::cudaMemcpyAsync(
       destination.data(), device_destination.get(),
       sizeof(uint64_t) * destination_size, cudaMemcpyDeviceToHost));
@@ -166,7 +170,7 @@ __global__ void mod_switch_scale_to_next(
           encrypted, coeff_modulus, coeff_modulus_size, coeff_count,
           coeff_count_power, ntt_inv_root_powers_div_two,
           ntt_scaled_inv_root_powers_div_two);
-        cudaDeviceSynchronize();
+        // cudaDeviceSynchronize();
 
         // __syncthreads();
 
