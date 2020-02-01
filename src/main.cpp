@@ -745,11 +745,11 @@ int main()
 {
     // example_ckks_basics();
 
-    // sample();
+    sample();
 
     // validate_implementation();
 
-    example_ckks_performance_default();
+    // example_ckks_performance_default();
 
     return 0;
 }

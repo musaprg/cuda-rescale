@@ -28,13 +28,19 @@ CudaContextData get_cuda_context_data(
     // q_1,...,q_{k-1}
     auto coeff_modulus = convert_small_modulus_vec_to_uint_vec(
       context_data.parms().coeff_modulus());
+    auto coeff_modulus_const_ratio =
+      convert_small_modulus_coeff_ratio_to_uint_vec(
+        context_data.parms().coeff_modulus());
+
     auto next_coeff_modulus =
       convert_small_modulus_vec_to_uint_vec(next_parms.coeff_modulus());
     //  size_t next_coeff_mod_count = next_coeff_modulus.size();
+    auto next_coeff_modulus_const_ratio =
+      convert_small_modulus_coeff_ratio_to_uint_vec(next_parms.coeff_modulus());
+
     size_t coeff_count = next_parms.poly_modulus_degree();
     //  size_t encrypted_size = encrypted.size();
-    auto &inv_last_coeff_mod_array =
-      context_data.base_converter()->get_inv_last_coeff_mod_array();
+    auto inv_last_coeff_mod_array = convert_pointer_to_uint_vec(context);
 
     auto last_modulus = parms.coeff_modulus().back();
 
@@ -50,9 +56,10 @@ CudaContextData get_cuda_context_data(
       ntt_inv_root_powers_div_two, ntt_scaled_inv_root_powers_div_two);
 
     CudaContextData cuda_context_data(
-      coeff_modulus, next_coeff_modulus, coeff_count, coeff_count_power,
-      ntt_root_powers, ntt_scaled_root_powers, ntt_inv_root_powers_div_two,
-      ntt_scaled_inv_root_powers_div_two);
+      coeff_modulus, coeff_modulus_const_ratio, next_coeff_modulus,
+      next_coeff_modulus_const_ratio, inv_last_coeff_mod_array, coeff_count,
+      coeff_count_power, ntt_root_powers, ntt_scaled_root_powers,
+      ntt_inv_root_powers_div_two, ntt_scaled_inv_root_powers_div_two);
 
     return cuda_context_data;
 }

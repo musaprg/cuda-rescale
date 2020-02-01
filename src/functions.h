@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <thrust/transform.h>
+// #include <thrust/transform.h>
 
 #include <cassert>
 
@@ -41,9 +41,26 @@ inline void print_log(const string &s, size_t level = 0)
 template <typename T>
 inline void print_vector_hoge(const T &v)
 {
+    int cursor = 0;
     for (auto &&item : v)
     {
+        if (cursor == 10)
+        {
+            cout << endl;
+            cursor = 0;
+        }
         cout << item << " ";
+        cursor++;
+    }
+    cout << endl;
+}
+
+template <typename T>
+inline void print_vector_hoge(const T &v, int size)
+{
+    for (size_t i = 0; i < size; i++)
+    {
+        cout << v.at(i) << " ";
     }
     cout << endl;
 }
@@ -61,6 +78,20 @@ inline bool is_equal_hoge(const T &a, const T &b)
         }
     }
     return true;
+}
+
+__device__ inline uint64_t_array get_const_ratio(uint64_t_array data,
+                                                 size_t index)
+{
+    return data + 3 * index;
+}
+
+__device__ inline uint64_t_array get_poly(uint64_t_array data,
+                                          size_t poly_index, size_t coeff_count,
+                                          size_t coeff_modulus_count)
+{
+    const auto poly_uint64_count = coeff_count * coeff_modulus_count;
+    return data + poly_uint64_count * poly_index;
 }
 
 // NOTE: Works fine
@@ -195,11 +226,11 @@ __device__ inline void multiply_uint64_hw64(uint64_t operand1,
 void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
                      const CudaContextData &context);
 
-inline void rescale_to_next_inplace(CuCiphertext &encrypted,
-                                    const CudaContextData &context)
-{
-    rescale_to_next(encrypted, encrypted, context);
-}
+// inline void rescale_to_next_inplace(CuCiphertext &encrypted,
+//                                     const CudaContextData &context)
+// {
+//     rescale_to_next(encrypted, encrypted, context);
+// }
 
 __device__ inline uint64_t barret_reduce_63(
   uint64_t input, uint64_t modulus,
@@ -221,16 +252,20 @@ __device__ inline uint64_t barret_reduce_63(
                         -static_cast<std::int64_t>(tmp[0] >= modulus)));
 }
 
-__device__ inline void modulo_poly_coeffs_63(const uint64_t_array poly,
+__device__ inline void modulo_poly_coeffs_63(uint64_t_array poly,
                                              size_t coeff_count,
                                              const uint64_t modulus,
                                              const uint64_t_array const_ratio,
                                              uint64_t_array result)
 {
     // TODO: If this does not work, remove it.
-    thrust::transform(poly, poly + coeff_count, result, [&](uint64_t coeff) {
-        return barret_reduce_63(coeff, modulus, const_ratio);
-    });
+    // thrust::transform(poly, poly + coeff_count, result, [&](uint64_t coeff) {
+    //     return barret_reduce_63(coeff, modulus, const_ratio);
+    // });
+    for (size_t i = 0; i < coeff_count; i++)
+    {
+        result[i] = barret_reduce_63(poly[i], modulus, const_ratio);
+    }
 }
 
 // Inverse negacyclic NTT using Harvey's butterfly. (See Patrick Longa and
@@ -325,13 +360,16 @@ __global__ void transform_to_ntt_inplace(
   uint64_t_array ntt_root_powers, uint64_t_array ntt_scaled_root_powers);
 
 __global__ void mod_switch_scale_to_next(
-  const uint64_t_array encrypted, uint64_t_array destination,
-  const uint64_t_array coeff_modulus, const uint64_t_array next_coeff_modulus,
-  size_t encrypted_size, size_t destination_size, size_t coeff_modulus_count,
+  uint64_t_array encrypted, uint64_t_array destination,
+  const uint64_t_array coeff_modulus,
+  const uint64_t_array coeff_modulus_const_ratio,
+  const uint64_t_array next_coeff_modulus, size_t encrypted_size,
+  size_t destination_size, size_t coeff_modulus_size,
   size_t next_coeff_modulus_size, size_t coeff_count, int coeff_count_power,
   uint64_t_array ntt_root_powers, uint64_t_array ntt_scaled_root_powers,
   uint64_t_array ntt_inv_root_powers_div_two,
-  uint64_t_array ntt_scaled_inv_root_powers_div_two);
+  uint64_t_array ntt_scaled_inv_root_powers_div_two, uint64_t_array temp1,
+  uint64_t_array temp2, uint64_t_array inv_last_coeff_mod_array);
 
 // For compiling test
 __global__ void kernel(void);

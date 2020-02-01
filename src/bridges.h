@@ -35,15 +35,54 @@ CudaContextData get_cuda_context_data(const shared_ptr<seal::SEALContext> &,
                                       const seal::Ciphertext &,
                                       const seal::Ciphertext &);
 
+inline vector<uint64_t> convert_pointer_to_uint_vec(
+  const shared_ptr<seal::SEALContext> &context)
+{
+    auto context_data_ptr = context->first_context_data();
+    auto &context_data = *context_data_ptr;
+    auto coeff_base_mod_count =
+      context_data.base_converter()->coeff_base_mod_count();
+    auto &inv_last_coeff_mod_array =
+      context_data.base_converter()->get_inv_last_coeff_mod_array();
+
+    vector<uint64_t> ret;
+    // ret.reserve(coeff_base_mod_count);
+
+    for (size_t i = 0; i < coeff_base_mod_count - 1; i++)
+    {
+        ret.push_back(inv_last_coeff_mod_array[i]);
+    }
+
+    return ret;
+}
+
 inline vector<uint64_t> convert_small_modulus_vec_to_uint_vec(
   const vector<seal::SmallModulus> &src)
 {
     vector<uint64_t> ret;
-    ret.reserve(src.size());
+    // ret.reserve(src.size());
 
     for (auto &&v : src)
     {
         ret.push_back(v.value());
+    }
+
+    return ret;
+}
+
+// {q_1_ratio, q_2_ratio, q_3_ratio, ... }
+inline vector<uint64_t> convert_small_modulus_coeff_ratio_to_uint_vec(
+  const vector<seal::SmallModulus> &src)
+{
+    vector<uint64_t> ret;
+    // ret.reserve(src.size() * 3);
+
+    for (auto &&v : src)
+    {
+        for (auto &&cr : v.const_ratio())
+        {
+            ret.push_back(cr);
+        }
     }
 
     return ret;
