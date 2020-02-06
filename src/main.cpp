@@ -696,16 +696,16 @@ void sample()
                 if (destination_cu.at(i) == destination[i])
                 {
                     no_affect_coeff_count++;
-                    cout << "[No Affect at " << i << "] ";
+                    // cout << "[No Affect at " << i << "] ";
                 }
                 else
                 {
                     wrong_coeff_count++;
-                    cout << "[Wrong at " << i << "] ";
+                    // cout << "[Wrong at " << i << "] ";
                 }
-                cout << destination_cu.at(i)
-                     << "| expected: " << after_rescale[i]
-                     << " | before: " << destination[i] << endl;
+                // cout << destination_cu.at(i)
+                //      << "| expected: " << after_rescale[i]
+                //      << " | before: " << destination[i] << endl;
             }
         }
         cout << "Total wrong coeff count: " << wrong_coeff_count << "/"

@@ -226,13 +226,18 @@ __global__ void mod_switch_scale_to_next(
 
         for (size_t i = 0; i < ENCRYPTED_SIZE; i++)
         {
+            printf("evaluating c_%llu...\n", i);
             const auto c_i =
               get_poly(encrypted, i, coeff_count, coeff_modulus_size);
             set_uint_uint(c_i + next_coeff_modulus_size * coeff_count,
                           coeff_count, temp1);
+            // TODO: unroll these lines <begin>
             auto last_modulus_index = coeff_modulus_size - 1;
             auto last_modulus = coeff_modulus[last_modulus_index];
             uint64_t half = last_modulus >> 1;
+            printf("\tq_l: %llu\n", last_modulus);
+            printf("\tq_l/2: %llu\n", half);
+            // TODO: unroll these lines <end>
 
             for (size_t j = 0; j < coeff_count; j++)
             {
@@ -247,16 +252,21 @@ __global__ void mod_switch_scale_to_next(
             for (size_t mod_index = 0; mod_index < next_coeff_modulus_size;
                  mod_index++, temp2_ptr += coeff_count)
             {
+                auto const_ratio =
+                  get_const_ratio(coeff_modulus_const_ratio, mod_index);
+                printf("mod_index: %llu\n", mod_index);
+                printf("\tcoeff_modulus: %llu\n", coeff_modulus[mod_index]);
+                printf("\tconst_ratio: %llu %llu %llu\n", const_ratio[0],
+                       const_ratio[1], const_ratio[2]);
+
                 // (ct mod qk) mod qi
-                modulo_poly_coeffs_63(
-                  temp1, coeff_count, coeff_modulus[mod_index],
-                  get_const_ratio(coeff_modulus_const_ratio, mod_index),
-                  temp2_ptr);
-                // printf("%d\n", half);
+                modulo_poly_coeffs_63(temp1, coeff_count,
+                                      coeff_modulus[mod_index], const_ratio,
+                                      temp2_ptr);
                 uint64_t half_mod = barret_reduce_63(
                   half, coeff_modulus[mod_index],
                   get_const_ratio(coeff_modulus_const_ratio, mod_index));
-                // printf("%d\n", half_mod);
+                printf("\tq_l/2 mod q_%llu: %llu\n", mod_index, half_mod);
 
                 for (size_t j = 0; j < coeff_count; j++)
                 {
@@ -267,14 +277,13 @@ __global__ void mod_switch_scale_to_next(
 
                 // ((ct mod qi) - (ct mod qk)) mod qi
                 sub_poly_poly_coeffmod(
-                  get_poly(encrypted, i, coeff_count, coeff_modulus_size),
+                  get_poly(encrypted, i, coeff_count, coeff_modulus_size) +
+                    mod_index * coeff_count,
                   temp2_ptr, coeff_count, coeff_modulus[mod_index], temp2_ptr);
                 // // qk^(-1) * ((ct mod qi) - (ct mod qk)) mod qi
                 multiply_poly_scalar_coeffmod(
                   temp2_ptr, coeff_count, inv_last_coeff_mod_array[mod_index],
-                  coeff_modulus[mod_index],
-                  get_const_ratio(coeff_modulus_const_ratio, mod_index),
-                  temp2_ptr);
+                  coeff_modulus[mod_index], const_ratio, temp2_ptr);
             }
         }
 
