@@ -319,7 +319,7 @@ __device__ void multiply_poly_scalar_coeffmod(
 }
 
 // TODO: change to default cuda kernel(__global__)
-// NOTE: SOmething weired (occasionaly the value is vary)
+// NOTE: It works!!!!!!!!!!!!!!!!Yah!!!!!!!!!!!!!!!!!!
 __global__ void transform_from_ntt_inplace(
   uint64_t_array encrypted_ntt, // ciphertext
   uint64_t_array coeff_modulus,
