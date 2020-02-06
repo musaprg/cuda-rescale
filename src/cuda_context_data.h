@@ -49,6 +49,7 @@ struct CudaContextData
         next_coeff_modulus_const_ratio(next_coeff_modulus_const_ratio),
         inv_last_coeff_mod_array(inv_last_coeff_mod_array),
         coeff_count(coeff_count),
+        coeff_count_power(coeff_count_power),
         ntt_root_powers(ntt_root_powers),
         ntt_scaled_root_powers(ntt_scaled_root_powers),
         ntt_inv_root_powers_div_two(ntt_inv_root_powers_div_two),
