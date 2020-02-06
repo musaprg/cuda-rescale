@@ -642,7 +642,7 @@ void sample()
     auto x2_encrypted_cu = get_cuciphertext_from_ciphertext(x2_encrypted);
 
     CudaContextData cucontext =
-      get_cuda_context_data(context, x1_encrypted, x1_encrypted);
+      get_cuda_context_data(context, x1_encrypted, x2_encrypted);
     //    rescale_to_next_inplace(x1_encrypted_cu, cucontext);
     rescale_to_next(x1_encrypted_cu, x2_encrypted_cu, cucontext);
 }
