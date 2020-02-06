@@ -41,3 +41,6 @@ find_package(SEAL 3.3.2 EXACT REQUIRED)
 
 target_link_libraries(sample SEAL::seal)
 target_link_libraries(sample ${CUDA_LIBRARIES})
+
+target_link_libraries(bench SEAL::seal)
+target_link_libraries(bench ${CUDA_LIBRARIES})
