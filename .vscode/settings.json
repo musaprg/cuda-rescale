@@ -55,6 +55,14 @@
         "streambuf": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "cstdarg": "cpp",
+        "bitset": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "optional": "cpp",
+        "set": "cpp",
+        "shared_mutex": "cpp",
+        "typeindex": "cpp"
     }
 }

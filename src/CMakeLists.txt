@@ -10,6 +10,7 @@ target_sources(sample
 add_library(cudalib
         cuda.hpp
         cuda_context_data.h
+        timer.hpp
         functions.h
         functions.cu)
 
