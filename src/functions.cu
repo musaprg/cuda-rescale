@@ -224,7 +224,6 @@ __global__ void mod_switch_scale_to_next(
 
         auto temp2_ptr = temp2;
 
-#pragma unroll
         for (size_t i = 0; i < ENCRYPTED_SIZE; i++)
         {
             const auto c_i =
@@ -235,7 +234,6 @@ __global__ void mod_switch_scale_to_next(
             auto last_modulus = coeff_modulus[last_modulus_index];
             uint64_t half = last_modulus >> 1;
 
-#pragma unroll
             for (size_t j = 0; j < coeff_count; j++)
             {
                 temp1[j] =
@@ -243,8 +241,8 @@ __global__ void mod_switch_scale_to_next(
                                    get_const_ratio(coeff_modulus_const_ratio,
                                                    last_modulus_index));
             }
+            // --- seem to be working here
 
-#pragma unroll
             // NOTE: something weird after q_1.
             for (size_t mod_index = 0; mod_index < next_coeff_modulus_size;
                  mod_index++, temp2_ptr += coeff_count)
@@ -260,7 +258,6 @@ __global__ void mod_switch_scale_to_next(
                   get_const_ratio(coeff_modulus_const_ratio, mod_index));
                 // printf("%d\n", half_mod);
 
-#pragma unroll
                 for (size_t j = 0; j < coeff_count; j++)
                 {
                     temp2_ptr[j] = sub_uint_uint_mod(temp2_ptr[j], half_mod,

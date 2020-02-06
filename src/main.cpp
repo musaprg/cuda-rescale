@@ -658,11 +658,11 @@ void sample()
 
     auto x1_encrypted_cu = get_cuciphertext_from_ciphertext(x1_encrypted);
 
-    auto x2_encrypted = x1_encrypted;
-    auto x2_encrypted_cu = get_cuciphertext_from_ciphertext(x2_encrypted);
+    auto destination = x1_encrypted;
+    auto destination_cu = get_cuciphertext_from_ciphertext(destination);
 
     CudaContextData cucontext =
-      get_cuda_context_data(context, x1_encrypted, x2_encrypted);
+      get_cuda_context_data(context, x1_encrypted, destination);
 
     // {
     //     cout << "Print ntt_inv_root_powers_div_two" << endl;
@@ -676,41 +676,42 @@ void sample()
     //     cout << endl;
     // }
     //    rescale_to_next_inplace(x1_encrypted_cu, cucontext);
-    cout << "Before rescale vector size: " << x2_encrypted_cu.size() << endl;
-    rescale_to_next(x1_encrypted_cu, x2_encrypted_cu, cucontext);
+    cout << "Before rescale vector size: " << destination_cu.size() << endl;
+    rescale_to_next(x1_encrypted_cu, destination_cu, cucontext);
 
     {
-        evaluator.rescale_to_next_inplace(x2_encrypted);
+        seal::Ciphertext after_rescale;
+        evaluator.rescale_to_next(x1_encrypted, after_rescale);
 
-        cout << "After rescale vector size:" << x2_encrypted_cu.size() << endl;
+        cout << "After rescale vector size:" << destination_cu.size() << endl;
         cout << "After rescale vector size(correct): "
-             << x2_encrypted.uint64_count() << endl;
+             << after_rescale.uint64_count() << endl;
 
         size_t wrong_coeff_count = 0;
         size_t no_affect_coeff_count = 0;
-        for (size_t i = 0; i < x2_encrypted_cu.size(); i++)
+        for (size_t i = 0; i < destination_cu.size(); i++)
         {
-            if (x2_encrypted_cu.at(i) != x2_encrypted[i])
+            if (destination_cu.at(i) != after_rescale[i])
             {
-                if (x2_encrypted_cu.at(i) == x1_encrypted[i])
+                if (destination_cu.at(i) == destination[i])
                 {
                     no_affect_coeff_count++;
-                    cout << "[No Affect at " << i << "] "
-                         << x2_encrypted_cu.at(i) << ":" << x1_encrypted[i]
-                         << endl;
+                    cout << "[No Affect at " << i << "] ";
                 }
                 else
                 {
                     wrong_coeff_count++;
-                    cout << "[Wrong at " << i << "] " << x2_encrypted_cu.at(i)
-                         << ":" << x1_encrypted[i] << endl;
+                    cout << "[Wrong at " << i << "] ";
                 }
+                cout << destination_cu.at(i)
+                     << "| expected: " << after_rescale[i]
+                     << " | before: " << destination[i] << endl;
             }
         }
         cout << "Total wrong coeff count: " << wrong_coeff_count << "/"
-             << x2_encrypted_cu.size() << endl;
+             << destination_cu.size() << endl;
         cout << "Total no affect coeff count: " << no_affect_coeff_count << "/"
-             << x2_encrypted_cu.size() << endl;
+             << destination_cu.size() << endl;
     }
 }
 
