@@ -196,7 +196,9 @@ __device__ inline void sub_poly_poly_coeffmod(const uint64_t *operand1,
     {
         unsigned long long temp_result;
         int64_t borrow = sub_uint64(*operand1, *operand2, &temp_result);
-        *result = temp_result = (modulus & static_cast<uint64_t>(-borrow));
+        *result = temp_result + (modulus & static_cast<uint64_t>(-borrow));
+        // printf("%lld - %lld = %lld (borrow: %d) --- %lld\n", *operand1,
+        //        *operand2, temp_result, borrow, *result);
     }
 };
 
