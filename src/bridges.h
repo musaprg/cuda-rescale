@@ -35,23 +35,64 @@ CudaContextData get_cuda_context_data(const shared_ptr<seal::SEALContext> &,
                                       const seal::Ciphertext &,
                                       const seal::Ciphertext &);
 
-inline vector<uint64_t> convert_pointer_to_uint_vec(
+// TODO: Use this when refactoring (for decreasing the number of transmission)
+/*
+ * ret[current_level *]
+ * [invq_0 mod q_1, invq_1 mod q_1, invq_0 mod q_2, invq_1 mod q_2, ...]
+ */
+inline vector<uint64_t> get_inv_last_coeff_mod_array_from_context(
   const shared_ptr<seal::SEALContext> &context)
 {
+    cout << "[[get inv_last_coeff_mod_array]]" << endl;
     auto context_data_ptr = context->first_context_data();
+
+    vector<uint64_t> ret;
+
+    while (context_data_ptr->next_context_data())
+    {
+        auto &context_data = *context_data_ptr;
+        cout << "Level (chain_index) " << context_data.chain_index() << endl;
+        auto coeff_base_mod_count =
+          context_data.base_converter()->coeff_base_mod_count();
+        auto &inv_last_coeff_mod_array =
+          context_data.base_converter()->get_inv_last_coeff_mod_array();
+
+        for (size_t i = 0; i < coeff_base_mod_count; i++)
+        {
+            cout << inv_last_coeff_mod_array[i] << " ";
+            ret.push_back(inv_last_coeff_mod_array[i]);
+        }
+        cout << endl;
+
+        context_data_ptr = context_data_ptr->next_context_data();
+    }
+
+    return ret;
+}
+
+inline vector<uint64_t> get_inv_last_coeff_mod_array_from_encrypted(
+  const shared_ptr<seal::SEALContext> &context,
+  const seal::Ciphertext &encrypted)
+{
+    cout << "[[get inv_last_coeff_mod_array]]" << endl;
+
+    auto context_data_ptr = context->get_context_data(encrypted.parms_id());
     auto &context_data = *context_data_ptr;
     auto coeff_base_mod_count =
       context_data.base_converter()->coeff_base_mod_count();
     auto &inv_last_coeff_mod_array =
       context_data.base_converter()->get_inv_last_coeff_mod_array();
+    cout << "Ciphertext Level (chain_index) " << context_data.chain_index()
+         << endl;
 
     vector<uint64_t> ret;
-    // ret.reserve(coeff_base_mod_count);
 
-    for (size_t i = 0; i < coeff_base_mod_count - 1; i++)
+    for (size_t i = 0; i < coeff_base_mod_count; i++)
     {
+        cout << inv_last_coeff_mod_array[i] << " ";
         ret.push_back(inv_last_coeff_mod_array[i]);
     }
+    cout << endl;
 
     return ret;
 }

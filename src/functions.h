@@ -32,9 +32,11 @@ using uint64_t_array_ptr_ptr = uint64_t_array_ptr *;
 
 inline void print_log(const string &s, size_t level = 0)
 {
+    cout << "==================" << endl;
     for (size_t i = 0; i < level; i++)
         cout << "\t";
     cout << s << endl;
+    cout << "==================" << endl;
 }
 
 // NOTE: Works fine
@@ -42,9 +44,10 @@ template <typename T>
 inline void print_vector_hoge(const T &v)
 {
     int cursor = 0;
+    cout << "-----------------" << endl;
     for (auto &&item : v)
     {
-        if (cursor == 10)
+        if (cursor == 50)
         {
             cout << endl;
             cursor = 0;
@@ -63,6 +66,32 @@ inline void print_vector_hoge(const T &v, int size)
         cout << v.at(i) << " ";
     }
     cout << endl;
+}
+
+inline void print_poly(const CuCiphertext &v, size_t coeff_count, size_t length)
+{
+    auto num_poly = v.size() / (ENCRYPTED_SIZE * coeff_count);
+    cout << num_poly << endl;
+    size_t cursor = 0;
+
+    for (size_t poly_index = 0; poly_index < ENCRYPTED_SIZE; poly_index++)
+    {
+        for (size_t i = 0; i < num_poly; i++, cursor += coeff_count)
+        {
+            cout << "c_" << poly_index << " mod q_" << i << ": ";
+
+            for (size_t j = 0; j < length; j++)
+            {
+                cout << v.at(cursor + j) << " ";
+            }
+            cout << endl;
+        }
+    }
+}
+
+inline void print_poly(const CuCiphertext &v, size_t coeff_count)
+{
+    print_poly(v, coeff_count, coeff_count);
 }
 
 template <typename T>
@@ -226,11 +255,14 @@ __device__ inline void multiply_uint64_hw64(uint64_t operand1,
 void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
                      const CudaContextData &context);
 
-// inline void rescale_to_next_inplace(CuCiphertext &encrypted,
-//                                     const CudaContextData &context)
-// {
-//     rescale_to_next(encrypted, encrypted, context);
-// }
+// CuCiphertext rescale_to_next(const CuCiphertext &encrypted,
+//                              const CudaContextData &context);
+
+inline void rescale_to_next_inplace(CuCiphertext &encrypted,
+                                    const CudaContextData &context)
+{
+    rescale_to_next(encrypted, encrypted, context);
+}
 
 __device__ inline uint64_t barret_reduce_63(
   uint64_t input, uint64_t modulus,

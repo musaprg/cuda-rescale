@@ -40,7 +40,10 @@ CudaContextData get_cuda_context_data(
 
     size_t coeff_count = next_parms.poly_modulus_degree();
     //  size_t encrypted_size = encrypted.size();
-    auto inv_last_coeff_mod_array = convert_pointer_to_uint_vec(context);
+    // auto inv_last_coeff_mod_array =
+    //   get_inv_last_coeff_mod_array_from_context(context);
+    auto inv_last_coeff_mod_array =
+      get_inv_last_coeff_mod_array_from_encrypted(context, encrypted);
 
     auto last_modulus = parms.coeff_modulus().back();
 

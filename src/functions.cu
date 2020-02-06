@@ -28,9 +28,6 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     // http://www.slis.tsukuba.ac.jp/~fujisawa.makoto.fu/cgi-bin/wiki/index.php?CUDA%A4%C7%B9%D4%CE%F3%B1%E9%BB%BB%A1%A7%B2%C3%B8%BA%BB%BB
     cudaSetDevice(CUDA_DEVICE_ID);
 
-    size_t encrypted_size = encrypted.size();
-    // TODO: precaliculate destination size from input parameters.
-    size_t destination_size = destination.size();
     size_t coeff_count = context.coeff_count;
     int coeff_count_power = context.coeff_count_power;
     size_t coeff_modulus_size = context.coeff_modulus.size();
@@ -41,8 +38,15 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
       context.next_coeff_modulus_const_ratio.size();
     size_t next_ciphertext_size =
       coeff_count * ENCRYPTED_SIZE * next_coeff_modulus_size;
+    // TODO: 各q_lごとに存在する気がするので修正する
+    // ひとまずは動かすこと優先なのでencryptedが対応するレベルのものだけ取り込む．
     size_t inv_last_coeff_mod_array_size =
       context.inv_last_coeff_mod_array.size();
+
+    size_t encrypted_size = encrypted.size();
+    // TODO: precaliculate destination size from input parameters.
+    size_t destination_size =
+      ENCRYPTED_SIZE * coeff_count * next_coeff_modulus_size;
 
     print_log("Allocate Device Memeory");
     auto device_encrypted = cuda::make_unique<uint64_t[]>(encrypted_size);
@@ -117,7 +121,7 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     //  size_t device_heap_size = 1024 * 1024 * 1024;
     //  cudaDeviceSetLimit(cudaLimitMallocHeapSize, size);
 
-    print_vector_hoge(encrypted);
+    print_poly(encrypted, coeff_count, 10);
 
     size_t num_blocks =
       (coeff_modulus_size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
@@ -158,16 +162,17 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
       device_ntt_inv_root_powers_div_two.get(),
       device_ntt_scaled_inv_root_powers_div_two.get(), device_temp1.get(),
       device_temp2.get(), device_inv_last_coeff_mod_array.get());
-    assert(equal(encrypted.begin(), encrypted.end(), destination.begin()));
+    // assert(equal(encrypted.begin(), encrypted.end(), destination.begin()));
     cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
 
     print_log("Get the result from GPU");
+    destination.resize(destination_size);
     cuda::CHECK_CUDA_ERROR(::cudaMemcpyAsync(
       destination.data(), device_destination.get(),
       sizeof(uint64_t) * destination_size, cudaMemcpyDeviceToHost));
     cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
 
-    print_vector_hoge(destination);
+    print_poly(destination, coeff_count, 10);
 }
 
 // TODO: Fix header to suit this definition
@@ -202,6 +207,8 @@ __global__ void mod_switch_scale_to_next(
         //   ntt_scaled_inv_root_powers_div_two);
         // cudaDeviceSynchronize();
 
+        auto temp2_ptr = temp2;
+
         // #pragma unroll
         for (size_t i = 0; i < ENCRYPTED_SIZE; i++)
         {
@@ -219,7 +226,7 @@ __global__ void mod_switch_scale_to_next(
                                    get_const_ratio(coeff_modulus_const_ratio,
                                                    last_modulus_index));
             }
-            auto temp2_ptr = temp2;
+
             for (size_t mod_index = 0; mod_index < next_coeff_modulus_size;
                  mod_index++, temp2_ptr += coeff_count)
             {
@@ -228,13 +235,16 @@ __global__ void mod_switch_scale_to_next(
                   temp1, coeff_count, coeff_modulus[mod_index],
                   get_const_ratio(coeff_modulus_const_ratio, mod_index),
                   temp2_ptr);
+                // printf("%d\n", half);
                 uint64_t half_mod = barret_reduce_63(
                   half, coeff_modulus[mod_index],
                   get_const_ratio(coeff_modulus_const_ratio, mod_index));
+                // printf("%d\n", half_mod);
                 for (size_t j = 0; j < coeff_count; j++)
                 {
                     temp2_ptr[j] = sub_uint_uint_mod(temp2_ptr[j], half_mod,
                                                      coeff_modulus[mod_index]);
+                    // printf("%d\n", temp2_ptr[j]);
                 }
                 // --- seem to work by here
 
@@ -242,7 +252,7 @@ __global__ void mod_switch_scale_to_next(
                 sub_poly_poly_coeffmod(
                   get_poly(encrypted, i, coeff_count, coeff_modulus_size),
                   temp2_ptr, coeff_count, coeff_modulus[mod_index], temp2_ptr);
-                // qk^(-1) * ((ct mod qi) - (ct mod qk)) mod qi
+                // // qk^(-1) * ((ct mod qi) - (ct mod qk)) mod qi
                 multiply_poly_scalar_coeffmod(
                   temp2_ptr, coeff_count, inv_last_coeff_mod_array[mod_index],
                   coeff_modulus[mod_index],
@@ -251,20 +261,15 @@ __global__ void mod_switch_scale_to_next(
             }
         }
 
+        // set_poly_poly(encrypted, coeff_count * ENCRYPTED_SIZE,
+        //               next_coeff_modulus_size, destination)
         set_poly_poly(temp2, coeff_count * ENCRYPTED_SIZE,
                       next_coeff_modulus_size, destination);
-
-        // set_poly_poly(encrypted, coeff_count * ENCRYPTED_SIZE,
-        //               coeff_modulus_size, destination);
 
         // transform_to_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
         //   destination, coeff_modulus, next_coeff_modulus_size, coeff_count,
         //   coeff_count_power, ntt_root_powers, ntt_scaled_root_powers);
         // ::cudaDeviceSynchronize();
-        // ::__syncthreads();
-
-        // set_poly_poly(encrypted, coeff_count * ENCRYPTED_SIZE,
-        //               next_coeff_modulus_size, destination);
         // ::__syncthreads();
     }
 }
@@ -341,10 +346,11 @@ __global__ void transform_from_ntt_inplace(
             // {
             //     // printf("%d\n", tid);
             //     inverse_ntt_negacyclic_harvey(
-            //       encrypted_ntt + i * poly_uint64_count + tid * coeff_count,
-            //       coeff_count_power, coeff_modulus[tid],
+            //       encrypted_ntt + i * poly_uint64_count + tid *
+            //       coeff_count, coeff_count_power, coeff_modulus[tid],
             //       ntt_inv_root_powers_div_two + coeff_count * tid,
-            //       ntt_scaled_inv_root_powers_div_two + coeff_count * tid);
+            //       ntt_scaled_inv_root_powers_div_two + coeff_count *
+            //       tid);
             // }
         }
     }
@@ -493,19 +499,21 @@ __device__ void inverse_ntt_negacyclic_harvey_lazy(
                     // Compute U - V + 2q
                     T = two_times_modulus - *V + *U;
 
-                    // Cleverly check whether currU + currV >= two_times_modulus
+                    // Cleverly check whether currU + currV >=
+                    // two_times_modulus
                     currU = *U + *V -
                             (two_times_modulus &
                              static_cast<uint64_t>(
                                -static_cast<int64_t>((*U << 1) >= T)));
 
-                    // Need to make it so that div2_uint_mod takes values that
-                    // are > q. div2_uint_mod(U, modulusptr, coeff_uint64_count,
-                    // U); We use also the fact that parity of currU is same as
-                    // parity of T. Since our modulus is always so small that
-                    // currU + masked_modulus < 2^64, we never need to worry
-                    // about wrapping around when adding masked_modulus.
-                    // uint64_t masked_modulus = modulus &
+                    // Need to make it so that div2_uint_mod takes values
+                    // that are > q. div2_uint_mod(U, modulusptr,
+                    // coeff_uint64_count, U); We use also the fact that
+                    // parity of currU is same as parity of T. Since our
+                    // modulus is always so small that currU +
+                    // masked_modulus < 2^64, we never need to worry about
+                    // wrapping around when adding masked_modulus. uint64_t
+                    // masked_modulus = modulus &
                     // static_cast<uint64_t>(-static_cast<int64_t>(T & 1));
                     // uint64_t carry = add_uint64(currU, masked_modulus, 0,
                     // &currU); currU += modulus &
@@ -604,8 +612,9 @@ __device__ void ntt_negacyclic_harvey_lazy(uint64_t_array operand,
                 unsigned long long Q;
                 for (size_t j = j1; j < j2; j++)
                 {
-                    // The Harvey butterfly: assume X, Y in [0, 2p), and return
-                    // X', Y' in [0, 2p). X', Y' = X + WY, X - WY (mod p).
+                    // The Harvey butterfly: assume X, Y in [0, 2p), and
+                    // return X', Y' in [0, 2p). X', Y' = X + WY, X - WY
+                    // (mod p).
                     currX = *X - (two_times_modulus &
                                   static_cast<uint64_t>(-static_cast<int64_t>(
                                     *X >= two_times_modulus)));

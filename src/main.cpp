@@ -564,7 +564,7 @@ void sample()
     size_t poly_modulus_degree = 8192;
     parms.set_poly_modulus_degree(poly_modulus_degree);
     parms.set_coeff_modulus(
-      seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60}));
+      seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60})); // L2
 
     double scale = pow(2.0, 40);
 
@@ -692,6 +692,9 @@ void validate_implementation()
     encoder.encode(3.14159265, scale, plain_PI);
     seal::Ciphertext x1_encrypted;
     encryptor.encrypt(x_plain, x1_encrypted);
+
+    auto cdp = context->get_context_data(x1_encrypted.parms_id());
+    auto &cd = *cdp;
 
     print_line(__LINE__);
     cout << "Compute and rescale 3.14*x." << endl;
