@@ -318,20 +318,13 @@ __device__ inline void inverse_ntt_negacyclic_harvey(
                                        inv_root_powers_div_two,
                                        scaled_inv_root_powers_div_two);
 
-    // Finally maybe we need to reduce every coefficient modulo q, but we
-    // know that they are in the range [0, 4q).
-    // Since word size is controlled this is fast.
-    uint64_t two_times_modulus = modulus * 2;
     size_t n = size_t(1) << coeff_count_power;
 
+    // Final adjustments; compute a[j] = a[j] * n^{-1} mod q.
+    // We incorporated the final adjustment in the butterfly. Only need
+    // to reduce here.
     for (; n--; operand++)
     {
-
-        // printf("%lld\n", n);
-        if (*operand >= two_times_modulus)
-        {
-            *operand -= two_times_modulus;
-        }
         if (*operand >= modulus)
         {
             *operand -= modulus;
@@ -364,13 +357,18 @@ __device__ inline void ntt_negacyclic_harvey(uint64_t_array operand,
     ntt_negacyclic_harvey_lazy(operand, modulus, coeff_count_power, root_powers,
                                scaled_root_powers);
 
+    // Finally maybe we need to reduce every coefficient modulo q, but we
+    // know that they are in the range [0, 4q).
+    // Since word size is controlled this is fast.
+    uint64_t two_times_modulus = modulus * 2;
     size_t n = size_t(1) << coeff_count_power;
 
-    // Final adjustments; compute a[j] = a[j] * n^{-1} mod q.
-    // We incorporated the final adjustment in the butterfly. Only need
-    // to reduce here.
     for (; n--; operand++)
     {
+        if (*operand >= two_times_modulus)
+        {
+            *operand -= two_times_modulus;
+        }
         if (*operand >= modulus)
         {
             *operand -= modulus;
