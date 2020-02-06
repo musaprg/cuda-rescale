@@ -28,16 +28,19 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     // http://www.slis.tsukuba.ac.jp/~fujisawa.makoto.fu/cgi-bin/wiki/index.php?CUDA%A4%C7%B9%D4%CE%F3%B1%E9%BB%BB%A1%A7%B2%C3%B8%BA%BB%BB
     cudaSetDevice(CUDA_DEVICE_ID);
 
-    // for (size_t i = 0; i < context.next_coeff_modulus.size(); i++)
-    // {
-    //     assert(context.coeff_modulus.at(i) ==
-    //     context.next_coeff_modulus.at(i));
-    // } // works
+#ifndef NDEBUG
+    for (size_t i = 0; i < context.next_coeff_modulus.size(); i++)
+    {
+        assert(context.coeff_modulus.at(i) == context.next_coeff_modulus.at(i));
+    }
+#endif
 
     size_t coeff_count = context.coeff_count;
     int coeff_count_power = context.coeff_count_power;
+#ifndef NDEBUG
     cout << "Coeff Count: " << coeff_count << endl;
     cout << "Coeff Count Power: " << coeff_count_power << endl;
+#endif
     size_t coeff_modulus_size = context.coeff_modulus.size();
     size_t coeff_modulus_const_ratio_size =
       context.coeff_modulus_const_ratio.size();
@@ -129,7 +132,9 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     //  size_t device_heap_size = 1024 * 1024 * 1024;
     //  cudaDeviceSetLimit(cudaLimitMallocHeapSize, size);
 
+#ifndef NDEBUG
     print_poly(encrypted, coeff_count, 10);
+#endif
 
     size_t num_blocks =
       (coeff_modulus_size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
@@ -188,7 +193,9 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
       sizeof(uint64_t) * destination_size, cudaMemcpyDeviceToHost));
     cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
 
+#ifndef NDEBUG
     print_poly(destination, coeff_count, 10);
+#endif
 }
 
 // TODO: Fix header to suit this definition
@@ -226,7 +233,9 @@ __global__ void mod_switch_scale_to_next(
 
         for (size_t i = 0; i < ENCRYPTED_SIZE; i++)
         {
+#ifndef NDEBUG
             printf("evaluating c_%llu...\n", i);
+#endif
             const auto c_i =
               get_poly(encrypted, i, coeff_count, coeff_modulus_size);
             set_uint_uint(c_i + next_coeff_modulus_size * coeff_count,
@@ -235,8 +244,10 @@ __global__ void mod_switch_scale_to_next(
             auto last_modulus_index = coeff_modulus_size - 1;
             auto last_modulus = coeff_modulus[last_modulus_index];
             uint64_t half = last_modulus >> 1;
+#ifndef NDEBUG
             printf("\tq_l: %llu\n", last_modulus);
             printf("\tq_l/2: %llu\n", half);
+#endif
             // TODO: unroll these lines <end>
 
             for (size_t j = 0; j < coeff_count; j++)
@@ -252,10 +263,12 @@ __global__ void mod_switch_scale_to_next(
             {
                 auto const_ratio =
                   get_const_ratio(coeff_modulus_const_ratio, mod_index);
+#ifndef NDEBUG
                 printf("mod_index: %llu\n", mod_index);
                 printf("\tcoeff_modulus: %llu\n", coeff_modulus[mod_index]);
                 printf("\tconst_ratio: %llu %llu %llu\n", const_ratio[0],
                        const_ratio[1], const_ratio[2]);
+#endif
 
                 // (ct mod qk) mod qi
                 modulo_poly_coeffs_63(temp1, coeff_count,
@@ -264,7 +277,9 @@ __global__ void mod_switch_scale_to_next(
                 uint64_t half_mod = barret_reduce_63(
                   half, coeff_modulus[mod_index],
                   get_const_ratio(coeff_modulus_const_ratio, mod_index));
+#ifndef NDEBUG
                 printf("\tq_l/2 mod q_%llu: %llu\n", mod_index, half_mod);
+#endif
 
                 for (size_t j = 0; j < coeff_count; j++)
                 {
