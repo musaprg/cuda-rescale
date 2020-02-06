@@ -128,11 +128,19 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     size_t num_blocks =
       (coeff_modulus_size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 
+    print_log("Perform iNTT and Check Result");
     transform_from_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
       device_encrypted.get(), device_coeff_modulus.get(), coeff_modulus_size,
       coeff_count, coeff_count_power, device_ntt_inv_root_powers_div_two.get(),
       device_ntt_scaled_inv_root_powers_div_two.get());
     cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+
+    cuda::CHECK_CUDA_ERROR(::cudaMemcpyAsync(
+      destination.data(), device_encrypted.get(),
+      sizeof(uint64_t) * encrypted_size, cudaMemcpyDeviceToHost));
+    cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+
+    print_poly(destination, coeff_count, 10);
 
     // print_log("Perform mod_switch_scale_to_next");
     // mod_switch_scale_to_next<<<num_blocks, THREADS_PER_BLOCK>>>(
@@ -333,7 +341,7 @@ __global__ void transform_from_ntt_inplace(
             {
                 inverse_ntt_negacyclic_harvey(
                   get_poly(encrypted_ntt, i, coeff_count, coeff_modulus_count) +
-                    j * coeff_count,
+                    (j * coeff_count),
                   coeff_count_power, coeff_modulus[j],
                   ntt_inv_root_powers_div_two + coeff_count * j,
                   ntt_scaled_inv_root_powers_div_two + coeff_count * j);
@@ -374,7 +382,7 @@ __global__ void transform_to_ntt_inplace(
             {
                 ntt_negacyclic_harvey(
                   get_poly(encrypted, i, coeff_count, coeff_modulus_count) +
-                    j * coeff_count,
+                    (j * coeff_count),
                   coeff_count_power, coeff_modulus[j],
                   ntt_root_powers + coeff_count * j,
                   ntt_scaled_root_powers + coeff_count * j);
@@ -405,10 +413,13 @@ __device__ void inverse_ntt_negacyclic_harvey_lazy(
     size_t n = size_t(1) << coeff_count_power;
     size_t t = 1;
 
+    // printf("n = %llu, t = %llu\n", n, t);
+
     for (size_t m = n; m > 1; m >>= 1)
     {
         size_t j1 = 0;
         size_t h = m >> 1;
+        // printf("m = %llu, t = %llu, h = %llu\n", m, t, h);
         if (t >= 4)
         {
             for (size_t i = 0; i < h; i++)
@@ -417,6 +428,7 @@ __device__ void inverse_ntt_negacyclic_harvey_lazy(
                 // Need the powers of phi^{-1} in bit-reversed order
                 const uint64_t W = inv_root_powers_div_two[h + i];
                 const uint64_t Wprime = scaled_inv_root_powers_div_two[h + i];
+                // printf("\tW = %llu, Wprime = %llu\n", W, Wprime);
 
                 uint64_t *U = operand + j1;
                 uint64_t *V = U + t;

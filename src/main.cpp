@@ -582,6 +582,8 @@ void sample()
     size_t slot_count = encoder.slot_count();
     cout << "Number of slots: " << slot_count << endl;
 
+    seal::Evaluator evaluator(context);
+
     vector<double> input;
     input.reserve(slot_count);
     double curr_point = 0;
@@ -636,6 +638,24 @@ void sample()
     // }
     //    print_vector(coeff_modulus);
 
+    {
+        cout << "[[Check build-in iNTT]]" << endl;
+        seal::Ciphertext destination;
+        auto encrypted_cu = get_cuciphertext_from_ciphertext(x1_encrypted);
+        for (size_t i = 0; i < 5; i++)
+        {
+            cout << encrypted_cu.at(i) << " ";
+        }
+        cout << endl;
+        evaluator.transform_from_ntt(x1_encrypted, destination);
+        encrypted_cu = get_cuciphertext_from_ciphertext(destination);
+        for (size_t i = 0; i < 5; i++)
+        {
+            cout << encrypted_cu.at(i) << " ";
+        }
+        cout << endl;
+    }
+
     auto x1_encrypted_cu = get_cuciphertext_from_ciphertext(x1_encrypted);
 
     auto x2_encrypted = x1_encrypted;
@@ -643,6 +663,18 @@ void sample()
 
     CudaContextData cucontext =
       get_cuda_context_data(context, x1_encrypted, x2_encrypted);
+
+    {
+        cout << "Print ntt_inv_root_powers_div_two" << endl;
+        cout << "Size: " << cucontext.ntt_inv_root_powers_div_two.size()
+             << endl;
+        for (auto &&item : cucontext.ntt_inv_root_powers_div_two)
+        {
+            if (item != 0)
+                cout << item << " ";
+        }
+        cout << endl;
+    }
     //    rescale_to_next_inplace(x1_encrypted_cu, cucontext);
     rescale_to_next(x1_encrypted_cu, x2_encrypted_cu, cucontext);
 }

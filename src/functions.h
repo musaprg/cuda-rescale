@@ -71,7 +71,7 @@ inline void print_vector_hoge(const T &v, int size)
 inline void print_poly(const CuCiphertext &v, size_t coeff_count, size_t length)
 {
     auto num_poly = v.size() / (ENCRYPTED_SIZE * coeff_count);
-    cout << num_poly << endl;
+    cout << "num_poly(level): " << num_poly << endl;
     size_t cursor = 0;
 
     for (size_t poly_index = 0; poly_index < ENCRYPTED_SIZE; poly_index++)
@@ -325,11 +325,13 @@ __device__ inline void inverse_ntt_negacyclic_harvey(
     // to reduce here.
     for (; n--; operand++)
     {
+        // printf("%lld ", *operand);
         if (*operand >= modulus)
         {
             *operand -= modulus;
         }
     }
+    // printf("\n");
 }
 
 /**
