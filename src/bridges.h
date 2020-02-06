@@ -160,10 +160,10 @@ inline void convert_small_ntt_tables_vec_to_uint_vec(
     // ntt_scaled_inv_root_powers_div_two.resize(coeff_mod_count,
     //                                           vector<uint64_t>(coeff_count));
 
-    ntt_root_powers.resize(coeff_mod_count * coeff_count);
-    ntt_scaled_root_powers.resize(coeff_mod_count * coeff_count);
-    ntt_inv_root_powers_div_two.resize(coeff_mod_count * coeff_count);
-    ntt_scaled_inv_root_powers_div_two.resize(coeff_mod_count * coeff_count);
+    // ntt_root_powers.resize(coeff_mod_count * coeff_count);
+    // ntt_scaled_root_powers.resize(coeff_mod_count * coeff_count);
+    // ntt_inv_root_powers_div_two.resize(coeff_mod_count * coeff_count);
+    // ntt_scaled_inv_root_powers_div_two.resize(coeff_mod_count * coeff_count);
 
     // TODO: If there's something weird, check these line.
     for (size_t i = 0; i < coeff_mod_count; i++)
