@@ -20,7 +20,7 @@ inline CuCiphertext get_cuciphertext_from_ciphertext(
 {
     CuCiphertext ret;
     auto source_size = ciphertext.uint64_count();
-    ret.reserve(source_size);
+    // ret.reserve(source_size);
 
     auto it = ciphertext.data();
     for (size_t i = 0; i < source_size; ++i)
@@ -151,20 +151,6 @@ inline void convert_small_ntt_tables_vec_to_uint_vec(
     cout << "coeff_count: " << coeff_count << endl;
     cout << "coeff_mod_count: " << coeff_mod_count << endl;
 
-    // 2d array version
-    // ntt_root_powers.resize(coeff_mod_count, vector<uint64_t>(coeff_count));
-    // ntt_scaled_root_powers.resize(coeff_mod_count,
-    //                               vector<uint64_t>(coeff_count));
-    // ntt_inv_root_powers_div_two.resize(coeff_mod_count,
-    //                                    vector<uint64_t>(coeff_count));
-    // ntt_scaled_inv_root_powers_div_two.resize(coeff_mod_count,
-    //                                           vector<uint64_t>(coeff_count));
-
-    // ntt_root_powers.resize(coeff_mod_count * coeff_count);
-    // ntt_scaled_root_powers.resize(coeff_mod_count * coeff_count);
-    // ntt_inv_root_powers_div_two.resize(coeff_mod_count * coeff_count);
-    // ntt_scaled_inv_root_powers_div_two.resize(coeff_mod_count * coeff_count);
-
     // TODO: If there's something weird, check these line.
     for (size_t i = 0; i < coeff_mod_count; i++)
     {
@@ -183,17 +169,6 @@ inline void convert_small_ntt_tables_vec_to_uint_vec(
               small_ntt_table.get_from_scaled_root_powers(j);
             auto scaled_inv_root_power_div_two =
               small_ntt_table.get_from_scaled_inv_root_powers_div_two(j);
-
-            // cout << root_power << " " << inv_root_power_div_two << " "
-            //      << scaled_root_power << " " << scaled_inv_root_power_div_two
-            //      << " " << endl;
-
-            // 2d array version
-            // ntt_root_powers[i].emplace_back(root_power);
-            // ntt_inv_root_powers_div_two[i].emplace_back(inv_root_power_div_two);
-            // ntt_scaled_root_powers[i].emplace_back(scaled_root_power);
-            // ntt_scaled_inv_root_powers_div_two[i].emplace_back(
-            //   scaled_inv_root_power_div_two);
 
             ntt_root_powers.emplace_back(root_power);
             ntt_inv_root_powers_div_two.emplace_back(inv_root_power_div_two);

@@ -149,19 +149,18 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     // print_poly(destination, coeff_count, 10);
     // assert(is_equal_hoge(encrypted, destination));
 
-    // print_log("Perform mod_switch_scale_to_next");
-    // mod_switch_scale_to_next<<<num_blocks, THREADS_PER_BLOCK>>>(
-    //   device_encrypted.get(), device_destination.get(),
-    //   device_coeff_modulus.get(), device_coeff_modulus_const_ratio.get(),
-    //   device_next_coeff_modulus.get(), encrypted_size, destination_size,
-    //   coeff_modulus_size, next_coeff_modulus_size, coeff_count,
-    //   coeff_count_power, device_ntt_root_powers.get(),
-    //   device_ntt_scaled_root_powers.get(),
-    //   device_ntt_inv_root_powers_div_two.get(),
-    //   device_ntt_scaled_inv_root_powers_div_two.get(), device_temp1.get(),
-    //   device_temp2.get(), device_inv_last_coeff_mod_array.get());
-    // // assert(equal(encrypted.begin(), encrypted.end(),
-    // destination.begin())); cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+    print_log("Perform mod_switch_scale_to_next");
+    mod_switch_scale_to_next<<<num_blocks, THREADS_PER_BLOCK>>>(
+      device_encrypted.get(), device_destination.get(),
+      device_coeff_modulus.get(), device_coeff_modulus_const_ratio.get(),
+      device_next_coeff_modulus.get(), encrypted_size, destination_size,
+      coeff_modulus_size, next_coeff_modulus_size, coeff_count,
+      coeff_count_power, device_ntt_root_powers.get(),
+      device_ntt_scaled_root_powers.get(),
+      device_ntt_inv_root_powers_div_two.get(),
+      device_ntt_scaled_inv_root_powers_div_two.get(), device_temp1.get(),
+      device_temp2.get(), device_inv_last_coeff_mod_array.get());
+    cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
 
     // transform_to_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
     //   device_encrypted.get(), device_coeff_modulus.get(), coeff_modulus_size,
@@ -212,15 +211,15 @@ __global__ void mod_switch_scale_to_next(
     if (tid == 0)
     {
         // NOTE: no affect...Why?
-        // transform_from_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
-        //   encrypted, coeff_modulus, coeff_modulus_size, coeff_count,
-        //   coeff_count_power, ntt_inv_root_powers_div_two,
-        //   ntt_scaled_inv_root_powers_div_two);
-        // cudaDeviceSynchronize();
+        transform_from_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
+          encrypted, coeff_modulus, coeff_modulus_size, coeff_count,
+          coeff_count_power, ntt_inv_root_powers_div_two,
+          ntt_scaled_inv_root_powers_div_two);
+        cudaDeviceSynchronize();
 
         auto temp2_ptr = temp2;
 
-        // #pragma unroll
+#pragma unroll
         for (size_t i = 0; i < ENCRYPTED_SIZE; i++)
         {
             const auto c_i =
@@ -230,6 +229,8 @@ __global__ void mod_switch_scale_to_next(
             auto last_modulus_index = coeff_modulus_size - 1;
             auto last_modulus = coeff_modulus[last_modulus_index];
             uint64_t half = last_modulus >> 1;
+
+#pragma unroll
             for (size_t j = 0; j < coeff_count; j++)
             {
                 temp1[j] =
@@ -238,6 +239,7 @@ __global__ void mod_switch_scale_to_next(
                                                    last_modulus_index));
             }
 
+#pragma unroll
             for (size_t mod_index = 0; mod_index < next_coeff_modulus_size;
                  mod_index++, temp2_ptr += coeff_count)
             {
@@ -251,6 +253,8 @@ __global__ void mod_switch_scale_to_next(
                   half, coeff_modulus[mod_index],
                   get_const_ratio(coeff_modulus_const_ratio, mod_index));
                 // printf("%d\n", half_mod);
+
+#pragma unroll
                 for (size_t j = 0; j < coeff_count; j++)
                 {
                     temp2_ptr[j] = sub_uint_uint_mod(temp2_ptr[j], half_mod,
@@ -272,16 +276,13 @@ __global__ void mod_switch_scale_to_next(
             }
         }
 
-        // set_poly_poly(encrypted, coeff_count * ENCRYPTED_SIZE,
-        //               next_coeff_modulus_size, destination)
         set_poly_poly(temp2, coeff_count * ENCRYPTED_SIZE,
                       next_coeff_modulus_size, destination);
 
-        // transform_to_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
-        //   destination, coeff_modulus, next_coeff_modulus_size, coeff_count,
-        //   coeff_count_power, ntt_root_powers, ntt_scaled_root_powers);
-        // ::cudaDeviceSynchronize();
-        // ::__syncthreads();
+        transform_to_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
+          destination, coeff_modulus, next_coeff_modulus_size, coeff_count,
+          coeff_count_power, ntt_root_powers, ntt_scaled_root_powers);
+        ::cudaDeviceSynchronize();
     }
 }
 
