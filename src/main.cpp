@@ -664,17 +664,17 @@ void sample()
     CudaContextData cucontext =
       get_cuda_context_data(context, x1_encrypted, x2_encrypted);
 
-    {
-        cout << "Print ntt_inv_root_powers_div_two" << endl;
-        cout << "Size: " << cucontext.ntt_inv_root_powers_div_two.size()
-             << endl;
-        for (auto &&item : cucontext.ntt_inv_root_powers_div_two)
-        {
-            if (item != 0)
-                cout << item << " ";
-        }
-        cout << endl;
-    }
+    // {
+    //     cout << "Print ntt_inv_root_powers_div_two" << endl;
+    //     cout << "Size: " << cucontext.ntt_inv_root_powers_div_two.size()
+    //          << endl;
+    //     for (auto &&item : cucontext.ntt_inv_root_powers_div_two)
+    //     {
+    //         if (item != 0)
+    //             cout << item << " ";
+    //     }
+    //     cout << endl;
+    // }
     //    rescale_to_next_inplace(x1_encrypted_cu, cucontext);
     rescale_to_next(x1_encrypted_cu, x2_encrypted_cu, cucontext);
 }

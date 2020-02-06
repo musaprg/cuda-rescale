@@ -100,7 +100,7 @@ inline bool is_equal_hoge(const T &a, const T &b)
     auto bit = b.begin();
     for (auto ait = a.begin(); ait != a.end(); ait++, bit++)
     {
-        cout << *ait << " " << *bit << endl;
+        // cout << *ait << " " << *bit << endl;
         if (*ait != *bit)
         {
             return false;

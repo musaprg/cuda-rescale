@@ -128,19 +128,26 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     size_t num_blocks =
       (coeff_modulus_size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 
-    print_log("Perform iNTT and Check Result");
-    transform_from_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
-      device_encrypted.get(), device_coeff_modulus.get(), coeff_modulus_size,
-      coeff_count, coeff_count_power, device_ntt_inv_root_powers_div_two.get(),
-      device_ntt_scaled_inv_root_powers_div_two.get());
-    cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+    // print_log("Perform iNTT and Check Result");
+    // transform_from_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
+    //   device_encrypted.get(), device_coeff_modulus.get(), coeff_modulus_size,
+    //   coeff_count, coeff_count_power,
+    //   device_ntt_inv_root_powers_div_two.get(),
+    //   device_ntt_scaled_inv_root_powers_div_two.get());
+    // cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+    // transform_to_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
+    //   device_encrypted.get(), device_coeff_modulus.get(), coeff_modulus_size,
+    //   coeff_count, coeff_count_power, device_ntt_root_powers.get(),
+    //   device_ntt_scaled_root_powers.get());
+    // cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
 
-    cuda::CHECK_CUDA_ERROR(::cudaMemcpyAsync(
-      destination.data(), device_encrypted.get(),
-      sizeof(uint64_t) * encrypted_size, cudaMemcpyDeviceToHost));
-    cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+    // cuda::CHECK_CUDA_ERROR(::cudaMemcpyAsync(
+    //   destination.data(), device_encrypted.get(),
+    //   sizeof(uint64_t) * encrypted_size, cudaMemcpyDeviceToHost));
+    // cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
 
-    print_poly(destination, coeff_count, 10);
+    // print_poly(destination, coeff_count, 10);
+    // assert(is_equal_hoge(encrypted, destination));
 
     // print_log("Perform mod_switch_scale_to_next");
     // mod_switch_scale_to_next<<<num_blocks, THREADS_PER_BLOCK>>>(
@@ -362,6 +369,7 @@ __global__ void transform_from_ntt_inplace(
 }
 
 // TODO: change to default cuda kernel(__global__)
+// it works!!!!!!!!!!!!!!!!!!!!!!yah!!!!!!!!!!!!!!!!!
 __global__ void transform_to_ntt_inplace(
   uint64_t_array encrypted, // ciphertext
   uint64_t_array coeff_modulus,
