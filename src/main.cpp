@@ -681,28 +681,35 @@ void sample()
 
     {
         evaluator.rescale_to_next_inplace(x2_encrypted);
-        evaluator.rescale_to_next_inplace(x1_encrypted);
-
-        for (size_t i = 0; i < x1_encrypted.uint64_count(); i++)
-        {
-            assert(x1_encrypted.data()[i] == x2_encrypted.data()[i]);
-        }
 
         cout << "After rescale vector size:" << x2_encrypted_cu.size() << endl;
         cout << "After rescale vector size(correct): "
              << x2_encrypted.uint64_count() << endl;
 
         size_t wrong_coeff_count = 0;
+        size_t no_affect_coeff_count = 0;
         for (size_t i = 0; i < x2_encrypted_cu.size(); i++)
         {
-            if (x2_encrypted_cu.at(i) != x1_encrypted[i])
+            if (x2_encrypted_cu.at(i) != x2_encrypted[i])
             {
-                wrong_coeff_count++;
-                cout << "[Wrong at " << i << "] " << x2_encrypted_cu.at(i)
-                     << ":" << x1_encrypted[i] << endl;
+                if (x2_encrypted_cu.at(i) == x1_encrypted[i])
+                {
+                    no_affect_coeff_count++;
+                    cout << "[No Affect at " << i << "] "
+                         << x2_encrypted_cu.at(i) << ":" << x1_encrypted[i]
+                         << endl;
+                }
+                else
+                {
+                    wrong_coeff_count++;
+                    cout << "[Wrong at " << i << "] " << x2_encrypted_cu.at(i)
+                         << ":" << x1_encrypted[i] << endl;
+                }
             }
         }
         cout << "Total wrong coeff count: " << wrong_coeff_count << "/"
+             << x2_encrypted_cu.size() << endl;
+        cout << "Total no affect coeff count: " << no_affect_coeff_count << "/"
              << x2_encrypted_cu.size() << endl;
     }
 }

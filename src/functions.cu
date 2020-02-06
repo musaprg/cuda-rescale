@@ -28,6 +28,12 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     // http://www.slis.tsukuba.ac.jp/~fujisawa.makoto.fu/cgi-bin/wiki/index.php?CUDA%A4%C7%B9%D4%CE%F3%B1%E9%BB%BB%A1%A7%B2%C3%B8%BA%BB%BB
     cudaSetDevice(CUDA_DEVICE_ID);
 
+    // for (size_t i = 0; i < context.next_coeff_modulus.size(); i++)
+    // {
+    //     assert(context.coeff_modulus.at(i) ==
+    //     context.next_coeff_modulus.at(i));
+    // } // works
+
     size_t coeff_count = context.coeff_count;
     int coeff_count_power = context.coeff_count_power;
     cout << "Coeff Count: " << coeff_count << endl;
@@ -210,7 +216,6 @@ __global__ void mod_switch_scale_to_next(
 
     if (tid == 0)
     {
-        // NOTE: no affect...Why?
         transform_from_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
           encrypted, coeff_modulus, coeff_modulus_size, coeff_count,
           coeff_count_power, ntt_inv_root_powers_div_two,
@@ -240,6 +245,7 @@ __global__ void mod_switch_scale_to_next(
             }
 
 #pragma unroll
+            // NOTE: something weird after q_1.
             for (size_t mod_index = 0; mod_index < next_coeff_modulus_size;
                  mod_index++, temp2_ptr += coeff_count)
             {
@@ -261,7 +267,6 @@ __global__ void mod_switch_scale_to_next(
                                                      coeff_modulus[mod_index]);
                     // printf("%d\n", temp2_ptr[j]);
                 }
-                // --- seem to work by here
 
                 // ((ct mod qi) - (ct mod qk)) mod qi
                 sub_poly_poly_coeffmod(
