@@ -30,6 +30,8 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
 
     size_t coeff_count = context.coeff_count;
     int coeff_count_power = context.coeff_count_power;
+    cout << "Coeff Count: " << coeff_count << endl;
+    cout << "Coeff Count Power: " << coeff_count_power << endl;
     size_t coeff_modulus_size = context.coeff_modulus.size();
     size_t coeff_modulus_const_ratio_size =
       context.coeff_modulus_const_ratio.size();
@@ -126,17 +128,25 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     size_t num_blocks =
       (coeff_modulus_size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 
-    // transform_from_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
-    //   device_encrypted.get(), device_coeff_modulus.get(), coeff_modulus_size,
-    //   coeff_count, coeff_count_power,
+    transform_from_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
+      device_encrypted.get(), device_coeff_modulus.get(), coeff_modulus_size,
+      coeff_count, coeff_count_power, device_ntt_inv_root_powers_div_two.get(),
+      device_ntt_scaled_inv_root_powers_div_two.get());
+    cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+
+    // print_log("Perform mod_switch_scale_to_next");
+    // mod_switch_scale_to_next<<<num_blocks, THREADS_PER_BLOCK>>>(
+    //   device_encrypted.get(), device_destination.get(),
+    //   device_coeff_modulus.get(), device_coeff_modulus_const_ratio.get(),
+    //   device_next_coeff_modulus.get(), encrypted_size, destination_size,
+    //   coeff_modulus_size, next_coeff_modulus_size, coeff_count,
+    //   coeff_count_power, device_ntt_root_powers.get(),
+    //   device_ntt_scaled_root_powers.get(),
     //   device_ntt_inv_root_powers_div_two.get(),
-    //   device_ntt_scaled_inv_root_powers_div_two.get());
-    // transform_from_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
-    //   device_encrypted.get(), device_coeff_modulus.get(), coeff_modulus_size,
-    //   coeff_count, coeff_count_power,
-    //   device_ntt_inv_root_powers_div_two.get(),
-    //   device_ntt_scaled_inv_root_powers_div_two.get());
-    // cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
+    //   device_ntt_scaled_inv_root_powers_div_two.get(), device_temp1.get(),
+    //   device_temp2.get(), device_inv_last_coeff_mod_array.get());
+    // // assert(equal(encrypted.begin(), encrypted.end(),
+    // destination.begin())); cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
 
     // transform_to_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
     //   device_encrypted.get(), device_coeff_modulus.get(), coeff_modulus_size,
@@ -150,20 +160,6 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     //   destination.data(), device_encrypted.get(),
     //   sizeof(uint64_t) * destination_size, cudaMemcpyDeviceToHost));
     // print_vector_hoge(destination); // check result
-
-    print_log("Perform mod_switch_scale_to_next");
-    mod_switch_scale_to_next<<<num_blocks, THREADS_PER_BLOCK>>>(
-      device_encrypted.get(), device_destination.get(),
-      device_coeff_modulus.get(), device_coeff_modulus_const_ratio.get(),
-      device_next_coeff_modulus.get(), encrypted_size, destination_size,
-      coeff_modulus_size, next_coeff_modulus_size, coeff_count,
-      coeff_count_power, device_ntt_root_powers.get(),
-      device_ntt_scaled_root_powers.get(),
-      device_ntt_inv_root_powers_div_two.get(),
-      device_ntt_scaled_inv_root_powers_div_two.get(), device_temp1.get(),
-      device_temp2.get(), device_inv_last_coeff_mod_array.get());
-    // assert(equal(encrypted.begin(), encrypted.end(), destination.begin()));
-    cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
 
     print_log("Get the result from GPU");
     destination.resize(destination_size);
@@ -326,7 +322,7 @@ __global__ void transform_from_ntt_inplace(
   uint64_t_array ntt_scaled_inv_root_powers_div_two)
 {
     const auto tid = blockIdx.x * blockDim.x + threadIdx.x;
-    const auto poly_uint64_count = coeff_count * coeff_modulus_count;
+    // const auto poly_uint64_count = coeff_count * coeff_modulus_count;
 
     if (tid == 0)
     {
@@ -336,7 +332,8 @@ __global__ void transform_from_ntt_inplace(
             for (size_t j = 0; j < coeff_modulus_count; j++)
             {
                 inverse_ntt_negacyclic_harvey(
-                  encrypted_ntt + i * poly_uint64_count + j * coeff_count,
+                  get_poly(encrypted_ntt, i, coeff_count, coeff_modulus_count) +
+                    j * coeff_count,
                   coeff_count_power, coeff_modulus[j],
                   ntt_inv_root_powers_div_two + coeff_count * j,
                   ntt_scaled_inv_root_powers_div_two + coeff_count * j);
@@ -366,7 +363,7 @@ __global__ void transform_to_ntt_inplace(
   uint64_t_array ntt_root_powers, uint64_t_array ntt_scaled_root_powers)
 {
     const auto tid = blockIdx.x * blockDim.x + threadIdx.x;
-    const auto poly_uint64_count = coeff_count * coeff_modulus_count;
+    // const auto poly_uint64_count = coeff_count * coeff_modulus_count;
 
     // #pragma unroll
     if (tid == 0)
@@ -376,7 +373,8 @@ __global__ void transform_to_ntt_inplace(
             for (size_t j = 0; j < coeff_modulus_count; j++)
             {
                 ntt_negacyclic_harvey(
-                  encrypted + i * poly_uint64_count + j * coeff_count,
+                  get_poly(encrypted, i, coeff_count, coeff_modulus_count) +
+                    j * coeff_count,
                   coeff_count_power, coeff_modulus[j],
                   ntt_root_powers + coeff_count * j,
                   ntt_scaled_root_powers + coeff_count * j);

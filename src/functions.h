@@ -326,6 +326,8 @@ __device__ inline void inverse_ntt_negacyclic_harvey(
 
     for (; n--; operand++)
     {
+
+        // printf("%lld\n", n);
         if (*operand >= two_times_modulus)
         {
             *operand -= two_times_modulus;

@@ -169,6 +169,11 @@ inline void convert_small_ntt_tables_vec_to_uint_vec(
     for (size_t i = 0; i < coeff_mod_count; i++)
     {
         auto &small_ntt_table = coeff_small_ntt_tables[i];
+        cout << "[q_" << i << "] "
+             << "coeff_count: " << small_ntt_table.coeff_count() << endl;
+        cout << "[q_" << i << "] "
+             << "coeff_count_power: " << small_ntt_table.coeff_count_power()
+             << endl;
         for (size_t j = 0; j < coeff_count; j++)
         {
             auto root_power = small_ntt_table.get_from_root_powers(j);
