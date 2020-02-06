@@ -246,9 +246,7 @@ __global__ void mod_switch_scale_to_next(
                                    get_const_ratio(coeff_modulus_const_ratio,
                                                    last_modulus_index));
             }
-            // --- seem to be working here
 
-            // NOTE: something weird after q_1.
             for (size_t mod_index = 0; mod_index < next_coeff_modulus_size;
                  mod_index++, temp2_ptr += coeff_count)
             {
