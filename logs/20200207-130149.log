@@ -1,0 +1,235 @@
+
++---------------------------------------------------------------------------------+
+|         CKKS Performance Test with Degrees: 4096, 8192, 16384 and 32768         |
++---------------------------------------------------------------------------------+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 4096
+|   coeff_modulus size: 109 (36 + 36 + 37) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [3395 microseconds]
+Running tests .......... Done
+
+[CPU] Average rescale: 827 microseconds
+[CPU] Ratio of multiply: 12.0672
+[CPU] Ratio of relinearization: 60.1345
+[CPU] Ratio of rescale: 27.7983
+
++------------------------------------------------------+
+|         Perform test on Tesla V100-PCIE-32GB         |
++------------------------------------------------------+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 4096
+|   coeff_modulus size: 109 (36 + 36 + 37) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [1757 microseconds]
+Running tests .......... Done
+
+[GPU] Average rescale: 5736.4 microseconds
+[GPU] Average ntt: 8587.1 microseconds
+[GPU] Average intt: 18719.2 microseconds
+[GPU] Average rescale(whole): 33042.7 microseconds
+[GPU] Average data_transmission: 149.1 microseconds
+[GPU] Average rescale(whole + data_transmission): 33191.8 microseconds
+
++------------------------------------------------------+
+|         Perform test on Tesla P100-PCIE-16GB         |
++------------------------------------------------------+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 4096
+|   coeff_modulus size: 109 (36 + 36 + 37) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [1170 microseconds]
+Running tests .......... Done
+
+[GPU] Average rescale: 13085.2 microseconds
+[GPU] Average ntt: 16073.6 microseconds
+[GPU] Average intt: 34984.7 microseconds
+[GPU] Average rescale(whole): 64143.5 microseconds
+[GPU] Average data_transmission: 147.4 microseconds
+[GPU] Average rescale(whole + data_transmission): 64290.9 microseconds
+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 8192
+|   coeff_modulus size: 218 (43 + 43 + 44 + 44 + 44) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [8159 microseconds]
+Running tests .......... Done
+
+[CPU] Average rescale: 2530 microseconds
+[CPU] Ratio of multiply: 9.86573
+[CPU] Ratio of relinearization: 60.5954
+[CPU] Ratio of rescale: 29.5388
+
++------------------------------------------------------+
+|         Perform test on Tesla V100-PCIE-32GB         |
++------------------------------------------------------+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 8192
+|   coeff_modulus size: 218 (43 + 43 + 44 + 44 + 44) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [6735 microseconds]
+Running tests .......... Done
+
+[GPU] Average rescale: 31035.5 microseconds
+[GPU] Average ntt: 54664.5 microseconds
+[GPU] Average intt: 78771.6 microseconds
+[GPU] Average rescale(whole): 164472 microseconds
+[GPU] Average data_transmission: 347.7 microseconds
+[GPU] Average rescale(whole + data_transmission): 164819 microseconds
+
++------------------------------------------------------+
+|         Perform test on Tesla P100-PCIE-16GB         |
++------------------------------------------------------+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 8192
+|   coeff_modulus size: 218 (43 + 43 + 44 + 44 + 44) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [6885 microseconds]
+Running tests .......... Done
+
+[GPU] Average rescale: 66525.8 microseconds
+[GPU] Average ntt: 103153 microseconds
+[GPU] Average intt: 149851 microseconds
+[GPU] Average rescale(whole): 319530 microseconds
+[GPU] Average data_transmission: 342.1 microseconds
+[GPU] Average rescale(whole + data_transmission): 319872 microseconds
+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 16384
+|   coeff_modulus size: 438 (48 + 48 + 48 + 49 + 49 + 49 + 49 + 49 + 49) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [50758 microseconds]
+Running tests .......... Done
+
+[CPU] Average rescale: 11773 microseconds
+[CPU] Ratio of multiply: 8.69922
+[CPU] Ratio of relinearization: 66.5087
+[CPU] Ratio of rescale: 24.792
+
++------------------------------------------------------+
+|         Perform test on Tesla V100-PCIE-32GB         |
++------------------------------------------------------+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 16384
+|   coeff_modulus size: 438 (48 + 48 + 48 + 49 + 49 + 49 + 49 + 49 + 49) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [46290 microseconds]
+Running tests .......... Done
+
+[GPU] Average rescale: 167116 microseconds
+[GPU] Average ntt: 288966 microseconds
+[GPU] Average intt: 363489 microseconds
+[GPU] Average rescale(whole): 819570 microseconds
+[GPU] Average data_transmission: 1210.7 microseconds
+[GPU] Average rescale(whole + data_transmission): 820781 microseconds
+
++------------------------------------------------------+
+|         Perform test on Tesla P100-PCIE-16GB         |
++------------------------------------------------------+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 16384
+|   coeff_modulus size: 438 (48 + 48 + 48 + 49 + 49 + 49 + 49 + 49 + 49) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [46412 microseconds]
+Running tests .......... Done
+
+[GPU] Average rescale: 303208 microseconds
+[GPU] Average ntt: 518634 microseconds
+[GPU] Average intt: 654989 microseconds
+[GPU] Average rescale(whole): 1.47683e+06 microseconds
+[GPU] Average data_transmission: 1208.2 microseconds
+[GPU] Average rescale(whole + data_transmission): 1.47804e+06 microseconds
+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 32768
+|   coeff_modulus size: 881 (55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 56) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [333317 microseconds]
+Running tests .......... Done
+
+[CPU] Average rescale: 48973 microseconds
+[CPU] Ratio of multiply: 6.40502
+[CPU] Ratio of relinearization: 74.6899
+[CPU] Ratio of rescale: 18.9051
+
++------------------------------------------------------+
+|         Perform test on Tesla V100-PCIE-32GB         |
++------------------------------------------------------+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 32768
+|   coeff_modulus size: 881 (55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 56) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [310856 microseconds]
+Running tests .......... Done
+
+[GPU] Average rescale: 698490 microseconds
+[GPU] Average ntt: 1.31115e+06 microseconds
+[GPU] Average intt: 1.53236e+06 microseconds
+[GPU] Average rescale(whole): 3.542e+06 microseconds
+[GPU] Average data_transmission: 4935 microseconds
+[GPU] Average rescale(whole + data_transmission): 3.54693e+06 microseconds
+
++------------------------------------------------------+
+|         Perform test on Tesla P100-PCIE-16GB         |
++------------------------------------------------------+
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 32768
+|   coeff_modulus size: 881 (55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 55 + 56) bits
+\
+
+Generating secret/public keys: Done
+Generating relinearization keys: Done [310912 microseconds]
+Running tests .......... Done
+
+[GPU] Average rescale: 1.24855e+06 microseconds
+[GPU] Average ntt: 2.2319e+06 microseconds
+[GPU] Average intt: 2.64779e+06 microseconds
+[GPU] Average rescale(whole): 6.12823e+06 microseconds
+[GPU] Average data_transmission: 4807.7 microseconds
+[GPU] Average rescale(whole + data_transmission): 6.13304e+06 microseconds
