@@ -100,20 +100,10 @@ void validate_implementation()
     CudaContextData cucontext =
       get_cuda_context_data(context, x1_encrypted, destination);
 
-    // {
-    //     cout << "Print ntt_inv_root_powers_div_two" << endl;
-    //     cout << "Size: " << cucontext.ntt_inv_root_powers_div_two.size()
-    //          << endl;
-    //     for (auto &&item : cucontext.ntt_inv_root_powers_div_two)
-    //     {
-    //         if (item != 0)
-    //             cout << item << " ";
-    //     }
-    //     cout << endl;
-    // }
-    //    rescale_to_next_inplace(x1_encrypted_cu, cucontext);
     cout << "Used device: " << get_device_name(0) << endl;
+#ifndef NDEBUG
     cout << "Before rescale vector size: " << destination_cu.size() << endl;
+#endif
     rescale_to_next(x1_encrypted_cu, destination_cu, cucontext);
 
     {
