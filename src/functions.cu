@@ -228,8 +228,6 @@ ElapsedTime rescale_to_next(const CuCiphertext &encrypted,
                        data_transmission_time};
 }
 
-// TODO: Fix header to suit this definition
-// TODO: Implement me!!!!!!!!!!!!!!!!!!!!!!!
 __global__ void mod_switch_scale_to_next(
   uint64_t_array encrypted, uint64_t_array destination,
   const uint64_t_array coeff_modulus,
@@ -248,16 +246,18 @@ __global__ void mod_switch_scale_to_next(
 {
     const auto tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-    size_t num_blocks =
-      (coeff_modulus_size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
+    // size_t num_blocks =
+    //   (coeff_modulus_size + THREADS_PER_BLOCK - 1) / THREADS_PER_BLOCK;
 
     if (tid == 0)
     {
-        // transform_from_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
-        //   encrypted, coeff_modulus, coeff_modulus_size, coeff_count,
-        //   coeff_count_power, ntt_inv_root_powers_div_two,
-        //   ntt_scaled_inv_root_powers_div_two);
-        // cudaDeviceSynchronize();
+        auto last_modulus_index = coeff_modulus_size - 1;
+        auto last_modulus = coeff_modulus[last_modulus_index];
+        uint64_t half = last_modulus >> 1;
+#ifndef NDEBUG
+        printf("\tq_l: %llu\n", last_modulus);
+        printf("\tq_l/2: %llu\n", half);
+#endif
 
         auto temp2_ptr = temp2;
 
@@ -270,15 +270,6 @@ __global__ void mod_switch_scale_to_next(
               get_poly(encrypted, i, coeff_count, coeff_modulus_size);
             set_uint_uint(c_i + next_coeff_modulus_size * coeff_count,
                           coeff_count, temp1);
-            // TODO: unroll these lines <begin>
-            auto last_modulus_index = coeff_modulus_size - 1;
-            auto last_modulus = coeff_modulus[last_modulus_index];
-            uint64_t half = last_modulus >> 1;
-#ifndef NDEBUG
-            printf("\tq_l: %llu\n", last_modulus);
-            printf("\tq_l/2: %llu\n", half);
-#endif
-            // TODO: unroll these lines <end>
 
             for (size_t j = 0; j < coeff_count; j++)
             {
@@ -332,11 +323,6 @@ __global__ void mod_switch_scale_to_next(
 
         set_poly_poly(temp2, coeff_count * ENCRYPTED_SIZE,
                       next_coeff_modulus_size, destination);
-
-        // transform_to_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
-        //   destination, coeff_modulus, next_coeff_modulus_size, coeff_count,
-        //   coeff_count_power, ntt_root_powers, ntt_scaled_root_powers);
-        // ::cudaDeviceSynchronize();
     }
 }
 
