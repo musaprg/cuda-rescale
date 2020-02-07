@@ -7,6 +7,7 @@
 // #include <thrust/transform.h>
 
 #include <cassert>
+#include <tuple>
 
 #include "cuda.hpp"
 #include "cuda_context_data.h"

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "bridges.h"
 #include "examples.hpp"
 #include "functions.h"
