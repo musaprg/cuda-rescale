@@ -29,8 +29,6 @@ using uint64_t_array_ptr = uint64_t_array *;
 using uint64_t_array_ptr_ptr = uint64_t_array_ptr *;
 // using CuCiphertext = std::unique_ptr<uint64_t_array_ptr>;
 
-// void initialize(std::shared_ptr<seal::SEALContext> context);
-
 inline void print_log(const string &s, size_t level = 0)
 {
     cout << "==================" << endl;
