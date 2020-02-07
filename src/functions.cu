@@ -23,7 +23,7 @@
 
 // ---------------------------------------------------------------------------
 
-tuple<double, double, double, double> rescale_to_next(
+tuple<int64_t, int64_t, int64_t, int64_t> rescale_to_next(
   const CuCiphertext &encrypted, CuCiphertext &destination,
   const CudaContextData &context)
 {
@@ -206,17 +206,10 @@ tuple<double, double, double, double> rescale_to_next(
     print_poly(destination, coeff_count, 10);
 #endif
 
-    // ms -> us
-    rescale_whole_time *= 1000;
-    rescale_time *= 1000;
-    auto rescale_ratio = rescale_time / rescale_whole_time;
-    ntt_time *= 1000;
-    auto ntt_ratio = ntt_time / rescale_whole_time;
-    inverse_ntt_time *= 1000;
-    auto inverse_ntt_ratio = inverse_ntt_time / rescale_whole_time;
-    data_transmission_time *= 1000;
-
 #ifndef NDEBUG
+    auto rescale_ratio = rescale_time / rescale_whole_time;
+    auto ntt_ratio = ntt_time / rescale_whole_time;
+    auto inverse_ntt_ratio = inverse_ntt_time / rescale_whole_time;
     cout << "rescale_time(iNTT+Rescale+NTT): " << rescale_whole_time << " [us]"
          << endl;
     cout << "\t"

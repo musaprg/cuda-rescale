@@ -338,29 +338,17 @@ void bench_gpu(shared_ptr<seal::SEALContext> context)
     auto avg_inverse_ntt = time_inverse_ntt_sum / count;
     auto avg_data_transmission = time_data_transmission_sum / count;
     auto avg_whole_rescale = avg_rescale + avg_ntt + avg_inverse_ntt;
-    auto avg_multiply = time_multiply_sum.count() / count;
-    auto avg_relinearize = time_relinearize_sum.count() / count;
 
     cout << "[GPU] Average rescale: " << avg_rescale << " microseconds" << endl;
     cout << "[GPU] Average ntt: " << avg_ntt << " microseconds" << endl;
     cout << "[GPU] Average intt: " << avg_inverse_ntt << " microseconds"
          << endl;
-    cout << "[GPU] Average data_transmission: " << avg_data_transmission
-         << " microseconds" << endl;
     cout << "[GPU] Average rescale(whole): " << avg_whole_rescale
          << " microseconds" << endl;
-
-    auto sum_of_multiplication_time =
-      avg_multiply + avg_relinearize + avg_rescale;
-    cout << "[GPU] Ratio of multiply: "
-         << static_cast<double>(avg_multiply) * 100 / sum_of_multiplication_time
-         << endl;
-    cout << "[GPU] Ratio of relinearization: "
-         << static_cast<double>(avg_relinearize) * 100 /
-              sum_of_multiplication_time
-         << endl;
-    cout << "[GPU] Ratio of rescale: "
-         << static_cast<double>(avg_rescale) * 100 / sum_of_multiplication_time
+    cout << "[GPU] Average data_transmission: " << avg_data_transmission
+         << " microseconds" << endl;
+    cout << "[GPU] Average rescale(whole + data_transmission): "
+         << avg_whole_rescale + avg_data_transmission << " microseconds"
          << endl;
 }
 

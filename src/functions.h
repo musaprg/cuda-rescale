@@ -256,7 +256,7 @@ __device__ inline void multiply_uint64_hw64(uint64_t operand1,
 
 // return tuple(rescale_time, ntt_time, inverse_ntt_time,
 // data_transmission_time)
-tuple<double, double, double, double> rescale_to_next(
+tuple<int64_t, int64_t, int64_t, int64_t> rescale_to_next(
   const CuCiphertext &encrypted, CuCiphertext &destination,
   const CudaContextData &context);
 

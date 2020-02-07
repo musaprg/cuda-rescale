@@ -11,40 +11,40 @@
 class Timer
 {
 public:
+    using T = std::chrono::steady_clock;
+    using Period = std::chrono::microseconds;
     inline void Start() noexcept;
     inline void Stop() noexcept;
-    template <class Rep = double, class Period = std::milli>
-    inline std::chrono::duration<Rep, Period> Duration();
+    inline Timer::Period Duration();
     inline std::string ReturnCurrentTimeAndDate();
 
 private:
-    std::chrono::system_clock::time_point _start_time;
-    std::chrono::system_clock::time_point _current_time;
+    T::time_point _start_time;
+    T::time_point _current_time;
     bool _is_timer_working = false;
 };
 
 inline void Timer::Start() noexcept
 {
-    _start_time = std::chrono::system_clock::now();
-    _current_time = std::chrono::system_clock::now();
+    _start_time = T::now();
+    _current_time = T::now();
     _is_timer_working = true;
 }
 
 inline void Timer::Stop() noexcept
 {
-    _current_time = std::chrono::system_clock::now();
+    _current_time = T::now();
     _is_timer_working = false;
 }
 
-// Return duration in milliseconds.
-template <class Rep, class Period>
-inline std::chrono::duration<Rep, Period> Timer::Duration()
+// Return duration
+inline Timer::Period Timer::Duration()
 {
     if (_is_timer_working)
     {
         throw std::logic_error("Timer is working.");
     }
-    return _current_time - _start_time;
+    return std::chrono::duration_cast<Period>(_current_time - _start_time);
 }
 
 inline std::string Timer::ReturnCurrentTimeAndDate()
