@@ -23,8 +23,9 @@
 
 // ---------------------------------------------------------------------------
 
-void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
-                     const CudaContextData &context)
+tuple<double, double, double, double> rescale_to_next(
+  const CuCiphertext &encrypted, CuCiphertext &destination,
+  const CudaContextData &context)
 {
     // http://www.slis.tsukuba.ac.jp/~fujisawa.makoto.fu/cgi-bin/wiki/index.php?CUDA%A4%C7%B9%D4%CE%F3%B1%E9%BB%BB%A1%A7%B2%C3%B8%BA%BB%BB
     cudaSetDevice(CUDA_DEVICE_ID);
@@ -59,8 +60,9 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     // TODO: precaliculate destination size from input parameters.
     size_t destination_size =
       ENCRYPTED_SIZE * coeff_count * next_coeff_modulus_size;
-
+#ifndef NDEBUG
     print_log("Allocate Device Memeory");
+#endif
     auto device_encrypted = cuda::make_unique<uint64_t[]>(encrypted_size);
     auto device_destination = cuda::make_unique<uint64_t[]>(destination_size);
     auto device_coeff_modulus =
@@ -86,7 +88,9 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
 
     Timer timer;
     timer.Start();
+#ifndef NDEBUG
     print_log("Copy to Device Memeory");
+#endif
     cuda::CHECK_CUDA_ERROR(::cudaMemcpyAsync(
       device_encrypted.get(), encrypted.data(),
       sizeof(uint64_t) * encrypted_size, cudaMemcpyHostToDevice));
@@ -156,7 +160,9 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     auto rescale_whole_time = inverse_ntt_time;
 
     timer.Start();
+#ifndef NDEBUG
     print_log("Perform mod_switch_scale_to_next");
+#endif
     mod_switch_scale_to_next<<<num_blocks, THREADS_PER_BLOCK>>>(
       device_encrypted.get(), device_destination.get(),
       device_coeff_modulus.get(), device_coeff_modulus_const_ratio.get(),
@@ -185,7 +191,9 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     rescale_whole_time += ntt_time;
 
     timer.Start();
+#ifndef NDEBUG
     print_log("Get the result from GPU");
+#endif
     destination.resize(destination_size);
     cuda::CHECK_CUDA_ERROR(::cudaMemcpyAsync(
       destination.data(), device_destination.get(),
@@ -208,6 +216,7 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
     auto inverse_ntt_ratio = inverse_ntt_time / rescale_whole_time;
     data_transmission_time *= 1000;
 
+#ifndef NDEBUG
     cout << "rescale_time(iNTT+Rescale+NTT): " << rescale_whole_time << " [us]"
          << endl;
     cout << "\t"
@@ -220,6 +229,10 @@ void rescale_to_next(const CuCiphertext &encrypted, CuCiphertext &destination,
          << "NTT: " << ntt_time << " [us] (" << ntt_ratio << ")" << endl;
     cout << "data_transmission_time(sum): " << data_transmission_time << " [us]"
          << endl;
+#endif
+
+    return make_tuple(rescale_time, ntt_time, inverse_ntt_time,
+                      data_transmission_time);
 }
 
 // TODO: Fix header to suit this definition

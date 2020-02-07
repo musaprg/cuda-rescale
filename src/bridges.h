@@ -43,7 +43,9 @@ CudaContextData get_cuda_context_data(const shared_ptr<seal::SEALContext> &,
 inline vector<uint64_t> get_inv_last_coeff_mod_array_from_context(
   const shared_ptr<seal::SEALContext> &context)
 {
+#ifndef NDEBUG
     cout << "[[get inv_last_coeff_mod_array]]" << endl;
+#endif
     auto context_data_ptr = context->first_context_data();
 
     vector<uint64_t> ret;
@@ -51,7 +53,9 @@ inline vector<uint64_t> get_inv_last_coeff_mod_array_from_context(
     while (context_data_ptr->next_context_data())
     {
         auto &context_data = *context_data_ptr;
+#ifndef NDEBUG
         cout << "Level (chain_index) " << context_data.chain_index() << endl;
+#endif
         auto coeff_base_mod_count =
           context_data.base_converter()->coeff_base_mod_count();
         auto &inv_last_coeff_mod_array =
@@ -59,10 +63,14 @@ inline vector<uint64_t> get_inv_last_coeff_mod_array_from_context(
 
         for (size_t i = 0; i < coeff_base_mod_count; i++)
         {
+#ifndef NDEBUG
             cout << inv_last_coeff_mod_array[i] << " ";
+#endif
             ret.push_back(inv_last_coeff_mod_array[i]);
         }
+#ifndef NDEBUG
         cout << endl;
+#endif
 
         context_data_ptr = context_data_ptr->next_context_data();
     }
@@ -74,7 +82,9 @@ inline vector<uint64_t> get_inv_last_coeff_mod_array_from_encrypted(
   const shared_ptr<seal::SEALContext> &context,
   const seal::Ciphertext &encrypted)
 {
+#ifndef NDEBUG
     cout << "[[get inv_last_coeff_mod_array]]" << endl;
+#endif
 
     auto context_data_ptr = context->get_context_data(encrypted.parms_id());
     auto &context_data = *context_data_ptr;
@@ -82,17 +92,23 @@ inline vector<uint64_t> get_inv_last_coeff_mod_array_from_encrypted(
       context_data.base_converter()->coeff_base_mod_count();
     auto &inv_last_coeff_mod_array =
       context_data.base_converter()->get_inv_last_coeff_mod_array();
+#ifndef NDEBUG
     cout << "Ciphertext Level (chain_index) " << context_data.chain_index()
          << endl;
+#endif
 
     vector<uint64_t> ret;
 
     for (size_t i = 0; i < coeff_base_mod_count; i++)
     {
+#ifndef NDEBUG
         cout << inv_last_coeff_mod_array[i] << " ";
+#endif
         ret.push_back(inv_last_coeff_mod_array[i]);
     }
+#ifndef NDEBUG
     cout << endl;
+#endif
 
     return ret;
 }
@@ -148,18 +164,24 @@ inline void convert_small_ntt_tables_vec_to_uint_vec(
     size_t coeff_mod_count = parms.coeff_modulus().size();
     auto &coeff_small_ntt_tables = context_data.small_ntt_tables();
 
+#ifndef NDEBUG
     cout << "coeff_count: " << coeff_count << endl;
     cout << "coeff_mod_count: " << coeff_mod_count << endl;
+#endif
 
     // TODO: If there's something weird, check these line.
     for (size_t i = 0; i < coeff_mod_count; i++)
     {
         auto &small_ntt_table = coeff_small_ntt_tables[i];
+
+#ifndef NDEBUG
         cout << "[q_" << i << "] "
              << "coeff_count: " << small_ntt_table.coeff_count() << endl;
         cout << "[q_" << i << "] "
              << "coeff_count_power: " << small_ntt_table.coeff_count_power()
              << endl;
+#endif
+
         for (size_t j = 0; j < coeff_count; j++)
         {
             auto root_power = small_ntt_table.get_from_root_powers(j);
