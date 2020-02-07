@@ -7,6 +7,7 @@
 // #include <thrust/transform.h>
 
 #include <cassert>
+#include <string>
 
 #include "cuda.hpp"
 #include "cuda_context_data.h"
@@ -107,6 +108,14 @@ inline bool is_equal_hoge(const T &a, const T &b)
         }
     }
     return true;
+}
+
+inline string get_device_name(int device_id)
+{
+    cudaDeviceProp prop;
+    ::cudaGetDeviceProperties(&prop, device_id);
+    string ret(prop.name);
+    return ret;
 }
 
 __device__ inline uint64_t_array get_const_ratio(uint64_t_array data,
@@ -268,16 +277,17 @@ public:
 // TODO: rewrite with tuple after upgrading cuda version to 9.2
 ElapsedTime rescale_to_next(const CuCiphertext &encrypted,
                             CuCiphertext &destination,
-                            const CudaContextData &context);
+                            const CudaContextData &context,
+                            int cuda_device_id = 0);
 
 // CuCiphertext rescale_to_next(const CuCiphertext &encrypted,
 //                              const CudaContextData &context);
 
-inline void rescale_to_next_inplace(CuCiphertext &encrypted,
-                                    const CudaContextData &context)
-{
-    rescale_to_next(encrypted, encrypted, context);
-}
+// inline void rescale_to_next_inplace(CuCiphertext &encrypted,
+//                                     const CudaContextData &context)
+// {
+//     rescale_to_next(encrypted, encrypted, context);
+// }
 
 __device__ inline uint64_t barret_reduce_63(
   uint64_t input, uint64_t modulus,

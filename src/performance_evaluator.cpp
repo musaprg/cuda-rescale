@@ -17,7 +17,8 @@ void bench()
     parms.set_coeff_modulus(
       seal::CoeffModulus::BFVDefault(poly_modulus_degree));
     bench_cpu(seal::SEALContext::Create(parms));
-    bench_gpu(seal::SEALContext::Create(parms));
+    for (auto &&cuda_device_id : cuda_devices)
+        bench_gpu(seal::SEALContext::Create(parms), cuda_device_id);
 
     cout << endl;
     poly_modulus_degree = 8192;
@@ -25,7 +26,8 @@ void bench()
     parms.set_coeff_modulus(
       seal::CoeffModulus::BFVDefault(poly_modulus_degree));
     bench_cpu(seal::SEALContext::Create(parms));
-    bench_gpu(seal::SEALContext::Create(parms));
+    for (auto &&cuda_device_id : cuda_devices)
+        bench_gpu(seal::SEALContext::Create(parms), cuda_device_id);
 
     cout << endl;
     poly_modulus_degree = 16384;
@@ -33,7 +35,8 @@ void bench()
     parms.set_coeff_modulus(
       seal::CoeffModulus::BFVDefault(poly_modulus_degree));
     bench_cpu(seal::SEALContext::Create(parms));
-    bench_gpu(seal::SEALContext::Create(parms));
+    for (auto &&cuda_device_id : cuda_devices)
+        bench_gpu(seal::SEALContext::Create(parms), cuda_device_id);
 
     cout << endl;
     poly_modulus_degree = 32768;
@@ -41,7 +44,8 @@ void bench()
     parms.set_coeff_modulus(
       seal::CoeffModulus::BFVDefault(poly_modulus_degree));
     bench_cpu(seal::SEALContext::Create(parms));
-    bench_gpu(seal::SEALContext::Create(parms));
+    for (auto &&cuda_device_id : cuda_devices)
+        bench_gpu(seal::SEALContext::Create(parms), cuda_device_id);
 }
 
 // https://github.com/microsoft/SEAL/blob/master/native/examples/6_performance.cpp
@@ -193,9 +197,11 @@ void bench_cpu(shared_ptr<seal::SEALContext> context)
 
 // https://github.com/microsoft/SEAL/blob/master/native/examples/6_performance.cpp
 // Fixed by @musaprg
-void bench_gpu(shared_ptr<seal::SEALContext> context)
+void bench_gpu(shared_ptr<seal::SEALContext> context, int cuda_device_id)
 {
     chrono::steady_clock::time_point time_start, time_end;
+
+    cout << "Perform test on " << get_device_name(cuda_device_id) << endl;
 
     print_parameters(context);
     cout << endl;
@@ -312,8 +318,8 @@ void bench_gpu(shared_ptr<seal::SEALContext> context)
         auto destination_cu = get_cuciphertext_from_ciphertext(encrypted1);
         // time_start = chrono::steady_clock::now();
         double rescale_time, ntt_time, inverse_ntt_time, data_transmission_time;
-        auto elapsed_time =
-          rescale_to_next(encrypted1_cu, destination_cu, context_cu);
+        auto elapsed_time = rescale_to_next(encrypted1_cu, destination_cu,
+                                            context_cu, cuda_device_id);
         // time_end = chrono::steady_clock::now();
         // time_rescale_sum += chrono::duration_cast<chrono::microseconds>(
         //   rescale_time + ntt_time + inverse_ntt_time);

@@ -25,10 +25,10 @@
 
 ElapsedTime rescale_to_next(const CuCiphertext &encrypted,
                             CuCiphertext &destination,
-                            const CudaContextData &context)
+                            const CudaContextData &context, int cuda_device_id)
 {
     // http://www.slis.tsukuba.ac.jp/~fujisawa.makoto.fu/cgi-bin/wiki/index.php?CUDA%A4%C7%B9%D4%CE%F3%B1%E9%BB%BB%A1%A7%B2%C3%B8%BA%BB%BB
-    cudaSetDevice(CUDA_DEVICE_ID);
+    cudaSetDevice(cuda_device_id);
 
 #ifndef NDEBUG
     for (size_t i = 0; i < context.next_coeff_modulus.size(); i++)
@@ -181,9 +181,9 @@ ElapsedTime rescale_to_next(const CuCiphertext &encrypted,
 
     timer.Start();
     transform_to_ntt_inplace<<<num_blocks, THREADS_PER_BLOCK>>>(
-      device_encrypted.get(), device_coeff_modulus.get(), coeff_modulus_size,
-      coeff_count, coeff_count_power, device_ntt_root_powers.get(),
-      device_ntt_scaled_root_powers.get());
+      device_destination.get(), device_coeff_modulus.get(),
+      next_coeff_modulus_size, coeff_count, coeff_count_power,
+      device_ntt_root_powers.get(), device_ntt_scaled_root_powers.get());
     cuda::CHECK_CUDA_ERROR(cudaDeviceSynchronize());
     timer.Stop();
 

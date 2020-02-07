@@ -676,6 +676,7 @@ void sample()
     //     cout << endl;
     // }
     //    rescale_to_next_inplace(x1_encrypted_cu, cucontext);
+    cout << "Used device: " << get_device_name(0) << endl;
     cout << "Before rescale vector size: " << destination_cu.size() << endl;
     rescale_to_next(x1_encrypted_cu, destination_cu, cucontext);
 
