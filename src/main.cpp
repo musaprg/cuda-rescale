@@ -67,40 +67,12 @@ void validate_implementation()
     seal::Ciphertext x1_encrypted;
     encryptor.encrypt(x_plain, x1_encrypted);
 
-    // auto x1data = x1_encrypted.data();
-    // using uint64_t_p = uint64_t *;
-    // uint64_t_p pointer_to_data = static_cast<uint64_t_p>(x1data);
-
-    // // check if it can be converted to pointer
-    // cout << *x1data << endl;
-    // cout << *pointer_to_data << endl;
-    // // ok
-
-    // cout << *(x1data + 1) << endl;
-    // cout << *(pointer_to_data + 1) << endl;
-
-    {
-        auto array = cuda::make_unique<uint64_t[]>(3);
-        //        cout << type_name<decltype(array)>() << endl;
-        proxy();
-    }
-
     auto context_data_ptr = context->get_context_data(x1_encrypted.parms_id());
     auto &context_data = *context_data_ptr;
     auto &next_context_data = *context_data.next_context_data();
     auto &next_parms = next_context_data.parms();
 
-    // smallmodulus -> uint64_t
-    // it seems not to cast simply.
-    // auto &next_coeff_modulus = next_parms.coeff_modulus();
-    // vector<uint64_t> coeff_modulus;
-    // coeff_modulus.reserve(next_coeff_modulus.size());
-    // for (auto &&v : next_coeff_modulus)
-    // {
-    //     coeff_modulus.push_back(v.value());
-    // }
-    //    print_vector(coeff_modulus);
-
+#ifndef NDEBUG
     {
         cout << "[[Check build-in iNTT]]" << endl;
         seal::Ciphertext destination;
@@ -118,6 +90,7 @@ void validate_implementation()
         }
         cout << endl;
     }
+#endif
 
     auto x1_encrypted_cu = get_cuciphertext_from_ciphertext(x1_encrypted);
 
@@ -147,6 +120,7 @@ void validate_implementation()
         seal::Ciphertext after_rescale;
         evaluator.rescale_to_next(x1_encrypted, after_rescale);
 
+#ifndef NDEBUG
         cout << "After rescale vector size:" << destination_cu.size() << endl;
         cout << "After rescale vector size(correct): "
              << after_rescale.uint64_count() << endl;
@@ -176,6 +150,12 @@ void validate_implementation()
              << destination_cu.size() << endl;
         cout << "Total no affect coeff count: " << no_affect_coeff_count << "/"
              << destination_cu.size() << endl;
+#else
+        for (size_t i = 0; i < destination_cu.size(); i++)
+        {
+            assert(destination_cu.at(i) == after_rescale[i]);
+        }
+#endif
     }
 }
 
