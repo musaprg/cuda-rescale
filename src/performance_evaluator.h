@@ -20,7 +20,7 @@ constexpr std::array<T, sizeof...(Args)> make_array(Args&&... args)
     return std::array<T, sizeof...(Args)>{static_cast<Args&&>(args)...};
 }
 
-auto cuda_devices = make_array<int>(4, 6);
+auto cuda_devices = make_array<int>(0, 6);
 
 void bench();
 
