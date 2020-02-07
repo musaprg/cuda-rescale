@@ -201,7 +201,7 @@ void bench_gpu(shared_ptr<seal::SEALContext> context, int cuda_device_id)
 {
     chrono::steady_clock::time_point time_start, time_end;
 
-    cout << "Perform test on " << get_device_name(cuda_device_id) << endl;
+    print_example_banner("Perform test on " + get_device_name(cuda_device_id));
 
     print_parameters(context);
     cout << endl;
