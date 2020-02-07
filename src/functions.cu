@@ -377,35 +377,19 @@ __global__ void transform_from_ntt_inplace(
   uint64_t_array ntt_inv_root_powers_div_two,
   uint64_t_array ntt_scaled_inv_root_powers_div_two)
 {
-    const auto tid = blockIdx.x * blockDim.x + threadIdx.x;
-    // const auto poly_uint64_count = coeff_count * coeff_modulus_count;
+    const size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    // const size_t poly_uint64_count = coeff_count * coeff_modulus_count;
+    const size_t i = tid / coeff_modulus_count;
+    const size_t j = tid - coeff_modulus_count * i;
 
-    if (tid == 0)
+    if (tid < ENCRYPTED_SIZE * coeff_modulus_count)
     {
-        // #pragma unroll
-        for (size_t i = 0; i < ENCRYPTED_SIZE; i++)
-        {
-            for (size_t j = 0; j < coeff_modulus_count; j++)
-            {
-                inverse_ntt_negacyclic_harvey(
-                  get_poly(encrypted_ntt, i, coeff_count, coeff_modulus_count) +
-                    (j * coeff_count),
-                  coeff_count_power, coeff_modulus[j],
-                  ntt_inv_root_powers_div_two + coeff_count * j,
-                  ntt_scaled_inv_root_powers_div_two + coeff_count * j);
-            }
-
-            // if (tid < coeff_modulus_count)
-            // {
-            //     // printf("%d\n", tid);
-            //     inverse_ntt_negacyclic_harvey(
-            //       encrypted_ntt + i * poly_uint64_count + tid *
-            //       coeff_count, coeff_count_power, coeff_modulus[tid],
-            //       ntt_inv_root_powers_div_two + coeff_count * tid,
-            //       ntt_scaled_inv_root_powers_div_two + coeff_count *
-            //       tid);
-            // }
-        }
+        inverse_ntt_negacyclic_harvey(
+          get_poly(encrypted_ntt, i, coeff_count, coeff_modulus_count) +
+            (j * coeff_count),
+          coeff_count_power, coeff_modulus[j],
+          ntt_inv_root_powers_div_two + coeff_count * j,
+          ntt_scaled_inv_root_powers_div_two + coeff_count * j);
     }
 }
 
@@ -419,33 +403,20 @@ __global__ void transform_to_ntt_inplace(
   int coeff_count_power,      // lg(poly_modulus_degree)
   uint64_t_array ntt_root_powers, uint64_t_array ntt_scaled_root_powers)
 {
-    const auto tid = blockIdx.x * blockDim.x + threadIdx.x;
-    // const auto poly_uint64_count = coeff_count * coeff_modulus_count;
+    const size_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    // const size_t poly_uint64_count = coeff_count * coeff_modulus_count;
+    const size_t i = tid / coeff_modulus_count;
+    const size_t j = tid - coeff_modulus_count * i;
 
     // #pragma unroll
-    if (tid == 0)
+    if (tid < ENCRYPTED_SIZE * coeff_modulus_count)
     {
-        for (size_t i = 0; i < ENCRYPTED_SIZE; i++)
-        {
-            for (size_t j = 0; j < coeff_modulus_count; j++)
-            {
-                ntt_negacyclic_harvey(
-                  get_poly(encrypted, i, coeff_count, coeff_modulus_count) +
-                    (j * coeff_count),
-                  coeff_count_power, coeff_modulus[j],
-                  ntt_root_powers + coeff_count * j,
-                  ntt_scaled_root_powers + coeff_count * j);
-            }
-
-            // if (tid < coeff_modulus_count)
-            // {
-            //     ntt_negacyclic_harvey(
-            //       encrypted + i * poly_uint64_count + tid * coeff_count,
-            //       coeff_count_power, coeff_modulus[tid],
-            //       ntt_root_powers + coeff_count * tid,
-            //       ntt_scaled_root_powers + coeff_count * tid);
-            // }
-        }
+        ntt_negacyclic_harvey(
+          get_poly(encrypted, i, coeff_count, coeff_modulus_count) +
+            (j * coeff_count),
+          coeff_count_power, coeff_modulus[j],
+          ntt_root_powers + coeff_count * j,
+          ntt_scaled_root_powers + coeff_count * j);
     }
 }
 
