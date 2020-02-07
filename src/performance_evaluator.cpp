@@ -48,7 +48,7 @@ void bench()
 // Fixed by @musaprg
 void bench_cpu(shared_ptr<seal::SEALContext> context)
 {
-    chrono::high_resolution_clock::time_point time_start, time_end;
+    chrono::steady_clock::time_point time_start, time_end;
 
     print_parameters(context);
     cout << endl;
@@ -67,9 +67,9 @@ void bench_cpu(shared_ptr<seal::SEALContext> context)
     chrono::microseconds time_diff;
 
     cout << "Generating relinearization keys: ";
-    time_start = chrono::high_resolution_clock::now();
+    time_start = chrono::steady_clock::now();
     relin_keys = keygen.relin_keys();
-    time_end = chrono::high_resolution_clock::now();
+    time_end = chrono::steady_clock::now();
     time_diff =
       chrono::duration_cast<chrono::microseconds>(time_end - time_start);
     cout << "Done [" << time_diff.count() << " microseconds]" << endl;
@@ -137,27 +137,27 @@ void bench_cpu(shared_ptr<seal::SEALContext> context)
         [Multiply]
         */
         encrypted1.reserve(3);
-        time_start = chrono::high_resolution_clock::now();
+        time_start = chrono::steady_clock::now();
         evaluator.multiply_inplace(encrypted1, encrypted2);
-        time_end = chrono::high_resolution_clock::now();
+        time_end = chrono::steady_clock::now();
         time_multiply_sum +=
           chrono::duration_cast<chrono::microseconds>(time_end - time_start);
 
         /*
         [Relinearize]
         */
-        time_start = chrono::high_resolution_clock::now();
+        time_start = chrono::steady_clock::now();
         evaluator.relinearize_inplace(encrypted1, relin_keys);
-        time_end = chrono::high_resolution_clock::now();
+        time_end = chrono::steady_clock::now();
         time_relinearize_sum +=
           chrono::duration_cast<chrono::microseconds>(time_end - time_start);
 
         /*
         [Rescale]
         */
-        time_start = chrono::high_resolution_clock::now();
+        time_start = chrono::steady_clock::now();
         evaluator.rescale_to_next_inplace(encrypted1);
-        time_end = chrono::high_resolution_clock::now();
+        time_end = chrono::steady_clock::now();
         time_rescale_sum +=
           chrono::duration_cast<chrono::microseconds>(time_end - time_start);
 
@@ -195,7 +195,7 @@ void bench_cpu(shared_ptr<seal::SEALContext> context)
 // Fixed by @musaprg
 void bench_gpu(shared_ptr<seal::SEALContext> context)
 {
-    chrono::high_resolution_clock::time_point time_start, time_end;
+    chrono::steady_clock::time_point time_start, time_end;
 
     print_parameters(context);
     cout << endl;
@@ -214,9 +214,9 @@ void bench_gpu(shared_ptr<seal::SEALContext> context)
     chrono::microseconds time_diff;
 
     cout << "Generating relinearization keys: ";
-    time_start = chrono::high_resolution_clock::now();
+    time_start = chrono::steady_clock::now();
     relin_keys = keygen.relin_keys();
-    time_end = chrono::high_resolution_clock::now();
+    time_end = chrono::steady_clock::now();
     time_diff =
       chrono::duration_cast<chrono::microseconds>(time_end - time_start);
     cout << "Done [" << time_diff.count() << " microseconds]" << endl;
@@ -287,18 +287,18 @@ void bench_gpu(shared_ptr<seal::SEALContext> context)
         [Multiply]
         */
         encrypted1.reserve(3);
-        time_start = chrono::high_resolution_clock::now();
+        time_start = chrono::steady_clock::now();
         evaluator.multiply_inplace(encrypted1, encrypted2);
-        time_end = chrono::high_resolution_clock::now();
+        time_end = chrono::steady_clock::now();
         time_multiply_sum +=
           chrono::duration_cast<chrono::microseconds>(time_end - time_start);
 
         /*
         [Relinearize]
         */
-        time_start = chrono::high_resolution_clock::now();
+        time_start = chrono::steady_clock::now();
         evaluator.relinearize_inplace(encrypted1, relin_keys);
-        time_end = chrono::high_resolution_clock::now();
+        time_end = chrono::steady_clock::now();
         time_relinearize_sum +=
           chrono::duration_cast<chrono::microseconds>(time_end - time_start);
 
@@ -310,12 +310,12 @@ void bench_gpu(shared_ptr<seal::SEALContext> context)
           get_cuda_context_data(context, encrypted1, destination);
         auto encrypted1_cu = get_cuciphertext_from_ciphertext(encrypted1);
         auto destination_cu = get_cuciphertext_from_ciphertext(encrypted1);
-        // time_start = chrono::high_resolution_clock::now();
+        // time_start = chrono::steady_clock::now();
         double rescale_time, ntt_time, inverse_ntt_time, data_transmission_time;
         std::tie(rescale_time, ntt_time, inverse_ntt_time,
                  data_transmission_time) =
           rescale_to_next(encrypted1_cu, destination_cu, context_cu);
-        // time_end = chrono::high_resolution_clock::now();
+        // time_end = chrono::steady_clock::now();
         // time_rescale_sum += chrono::duration_cast<chrono::microseconds>(
         //   rescale_time + ntt_time + inverse_ntt_time);
         time_rescale_sum += rescale_time;
