@@ -23,9 +23,9 @@
 
 // ---------------------------------------------------------------------------
 
-tuple<int64_t, int64_t, int64_t, int64_t> rescale_to_next(
-  const CuCiphertext &encrypted, CuCiphertext &destination,
-  const CudaContextData &context)
+ElapsedTime rescale_to_next(const CuCiphertext &encrypted,
+                            CuCiphertext &destination,
+                            const CudaContextData &context)
 {
     // http://www.slis.tsukuba.ac.jp/~fujisawa.makoto.fu/cgi-bin/wiki/index.php?CUDA%A4%C7%B9%D4%CE%F3%B1%E9%BB%BB%A1%A7%B2%C3%B8%BA%BB%BB
     cudaSetDevice(CUDA_DEVICE_ID);
@@ -224,8 +224,8 @@ tuple<int64_t, int64_t, int64_t, int64_t> rescale_to_next(
          << endl;
 #endif
 
-    return make_tuple(rescale_time, ntt_time, inverse_ntt_time,
-                      data_transmission_time);
+    return ElapsedTime{rescale_time, ntt_time, inverse_ntt_time,
+                       data_transmission_time};
 }
 
 // TODO: Fix header to suit this definition

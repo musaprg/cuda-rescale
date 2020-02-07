@@ -7,7 +7,6 @@
 // #include <thrust/transform.h>
 
 #include <cassert>
-#include <tuple>
 
 #include "cuda.hpp"
 #include "cuda_context_data.h"
@@ -255,11 +254,21 @@ __device__ inline void multiply_uint64_hw64(uint64_t operand1,
       static_cast<unsigned long long>(left + (middle >> 32) + (temp_sum >> 32));
 }
 
+struct ElapsedTime
+{
+public:
+    int64_t rescale_time;
+    int64_t ntt_time;
+    int64_t inverse_ntt_time;
+    int64_t data_transmission_time;
+};
+
 // return tuple(rescale_time, ntt_time, inverse_ntt_time,
 // data_transmission_time)
-tuple<int64_t, int64_t, int64_t, int64_t> rescale_to_next(
-  const CuCiphertext &encrypted, CuCiphertext &destination,
-  const CudaContextData &context);
+// TODO: rewrite with tuple after upgrading cuda version to 9.2
+ElapsedTime rescale_to_next(const CuCiphertext &encrypted,
+                            CuCiphertext &destination,
+                            const CudaContextData &context);
 
 // CuCiphertext rescale_to_next(const CuCiphertext &encrypted,
 //                              const CudaContextData &context);

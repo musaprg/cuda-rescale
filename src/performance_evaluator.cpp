@@ -312,16 +312,15 @@ void bench_gpu(shared_ptr<seal::SEALContext> context)
         auto destination_cu = get_cuciphertext_from_ciphertext(encrypted1);
         // time_start = chrono::steady_clock::now();
         double rescale_time, ntt_time, inverse_ntt_time, data_transmission_time;
-        std::tie(rescale_time, ntt_time, inverse_ntt_time,
-                 data_transmission_time) =
+        auto elapsed_time =
           rescale_to_next(encrypted1_cu, destination_cu, context_cu);
         // time_end = chrono::steady_clock::now();
         // time_rescale_sum += chrono::duration_cast<chrono::microseconds>(
         //   rescale_time + ntt_time + inverse_ntt_time);
-        time_rescale_sum += rescale_time;
-        time_ntt_sum += ntt_time;
-        time_inverse_ntt_sum += inverse_ntt_time;
-        time_data_transmission_sum += data_transmission_time;
+        time_rescale_sum += elapsed_time.rescale_time;
+        time_ntt_sum += elapsed_time.ntt_time;
+        time_inverse_ntt_sum += elapsed_time.inverse_ntt_time;
+        time_data_transmission_sum += elapsed_time.data_transmission_time;
 
         /*
         Print a dot to indicate progress.
