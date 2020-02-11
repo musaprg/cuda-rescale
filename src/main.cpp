@@ -106,11 +106,10 @@ void validate_implementation()
 #endif
     rescale_to_next(x1_encrypted_cu, destination_cu, cucontext);
 
+#ifndef NDEBUG
     {
         seal::Ciphertext after_rescale;
         evaluator.rescale_to_next(x1_encrypted, after_rescale);
-
-#ifndef NDEBUG
         cout << "After rescale vector size:" << destination_cu.size() << endl;
         cout << "After rescale vector size(correct): "
              << after_rescale.uint64_count() << endl;
@@ -140,18 +139,96 @@ void validate_implementation()
              << destination_cu.size() << endl;
         cout << "Total no affect coeff count: " << no_affect_coeff_count << "/"
              << destination_cu.size() << endl;
-#else
         for (size_t i = 0; i < destination_cu.size(); i++)
         {
             assert(destination_cu.at(i) == after_rescale[i]);
         }
-#endif
     }
+#endif
+}
+
+void rescale_ratio_check() {
+    seal::EncryptionParameters parms(seal::scheme_type::CKKS);
+
+    size_t poly_modulus_degree = 8192;
+    parms.set_poly_modulus_degree(poly_modulus_degree);
+    parms.set_coeff_modulus(
+      seal::CoeffModulus::Create(poly_modulus_degree, {60, 40, 40, 60})); // L2
+
+    double scale = pow(2.0, 40);
+
+    auto context = seal::SEALContext::Create(parms);
+    print_parameters(context);
+    cout << endl;
+
+    seal::KeyGenerator keygen(context);
+    auto public_key = keygen.public_key();
+    auto secret_key = keygen.secret_key();
+    auto relin_keys = keygen.relin_keys();
+    seal::Encryptor encryptor(context, public_key);
+
+    seal::CKKSEncoder encoder(context);
+    size_t slot_count = encoder.slot_count();
+    cout << "Number of slots: " << slot_count << endl;
+
+    seal::Evaluator evaluator(context);
+
+    vector<double> input;
+    input.reserve(slot_count);
+    double curr_point = 0;
+    double step_size = 1.0 / (static_cast<double>(slot_count) - 1);
+    for (size_t i = 0; i < slot_count; i++, curr_point += step_size)
+    {
+        input.push_back(curr_point);
+    }
+    cout << "Input vector: " << endl;
+    print_vector(input, 3, 7);
+
+    cout << "Evaluating multiply performance using evaluation of polynomial PI*x" << endl;
+
+
+    Timer timer;
+    double multiply_time_sum, relinearize_time_sum, rescale_time_sum;
+    int count = 10;
+    
+    for (size_t i = 0; i < count; i++){
+        seal::Plaintext x_plain, pi_plain;
+#ifndef NDEBUG
+        cout << "Encode input vectors." << endl;
+#endif
+        encoder.encode(input, scale, x_plain);
+        encoder.encode(3.14159265, scale, pi_plain);
+
+        seal::Ciphertext x1_encrypted, pi_encrypted;
+        encryptor.encrypt(x_plain, x1_encrypted);
+        encryptor.encrypt(pi_plain, pi_encrypted);
+
+        timer.Start();
+        evaluator.multiply_inplace(x1_encrypted, pi_encrypted);
+        timer.Stop();
+        multiply_time_sum += timer.Duration().count();
+
+        timer.Start();
+        evaluator.relinearize_inplace(x1_encrypted, relin_keys);
+        timer.Stop();
+        relinearize_time_sum += timer.Duration().count();
+
+        timer.Start();
+        evaluator.rescale_to_next_inplace(x1_encrypted);
+        timer.Stop();
+        rescale_time_sum += timer.Duration().count();
+    }
+
+    cout << "Multiply time avg: " << multiply_time_sum / count << " [us]" << endl;
+    cout << "Relinearize time avg: " << relinearize_time_sum / count << " [us]" << endl;
+    cout << "Rescale time avg: " << rescale_time_sum / count << " [us]" << endl;
 }
 
 int main()
 {
-    validate_implementation();
+    //validate_implementation();
+
+    rescale_ratio_check();
 
     return 0;
 }
