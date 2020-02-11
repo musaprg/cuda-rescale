@@ -147,7 +147,8 @@ void validate_implementation()
 #endif
 }
 
-void rescale_ratio_check() {
+void rescale_ratio_check()
+{
     seal::EncryptionParameters parms(seal::scheme_type::CKKS);
 
     size_t poly_modulus_degree = 8192;
@@ -184,14 +185,16 @@ void rescale_ratio_check() {
     cout << "Input vector: " << endl;
     print_vector(input, 3, 7);
 
-    cout << "Evaluating multiply performance using evaluation of polynomial PI*x" << endl;
-
+    cout
+      << "Evaluating multiply performance using evaluation of polynomial PI*x"
+      << endl;
 
     Timer timer;
     double multiply_time_sum, relinearize_time_sum, rescale_time_sum;
     int count = 10;
-    
-    for (size_t i = 0; i < count; i++){
+
+    for (size_t i = 0; i < count; i++)
+    {
         seal::Plaintext x_plain, pi_plain;
 #ifndef NDEBUG
         cout << "Encode input vectors." << endl;
@@ -219,14 +222,20 @@ void rescale_ratio_check() {
         rescale_time_sum += timer.Duration().count();
     }
 
-    cout << "Multiply time avg: " << multiply_time_sum / count << " [us]" << endl;
-    cout << "Relinearize time avg: " << relinearize_time_sum / count << " [us]" << endl;
-    cout << "Rescale time avg: " << rescale_time_sum / count << " [us]" << endl;
+    double whole_sum =
+      multiply_time_sum + relinearize_time_sum + rescale_time_sum;
+
+    cout << "Multiply time avg: " << multiply_time_sum / count << " [us] ("
+         << multiply_time_sum / whole_sum << ")" << endl;
+    cout << "Relinearize time avg: " << relinearize_time_sum / count
+         << " [us] (" << relinearize_time_sum / whole_sum << ")" << endl;
+    cout << "Rescale time avg: " << rescale_time_sum / count << " [us] ("
+         << rescale_time_sum / whole_sum << ")" << endl;
 }
 
 int main()
 {
-    //validate_implementation();
+    // validate_implementation();
 
     rescale_ratio_check();
 
