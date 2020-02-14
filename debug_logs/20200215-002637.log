@@ -1,0 +1,16 @@
+/
+| Encryption parameters :
+|   scheme: CKKS
+|   poly_modulus_degree: 8192
+|   coeff_modulus size: 200 (60 + 40 + 40 + 60) bits
+\
+
+Number of slots: 4096
+Input vector: 
+
+    [ 0.0000000, 0.0002442, 0.0004884, ..., 0.9995116, 0.9997558, 1.0000000 ]
+
+Evaluating multiply performance using evaluation of polynomial PI*x
+Multiply time avg: 951.5 [us] (0.112396)
+Relinearize time avg: 5044.5 [us] (0.595882)
+Rescale time avg: 2469.6 [us] (0.291722)
